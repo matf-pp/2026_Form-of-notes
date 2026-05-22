@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Button, LineEdit } from "std-widgets.slint";
 
 export global AppPalette {
@@ -309,4 +310,317 @@ export component AppWindow inherits Window{
             }
         }
     }
+=======
+import { Button, LineEdit } from "std-widgets.slint";
+
+export global AppPalette {
+    in-out property <bool> is_dark: true;
+    in-out property <brush> bg-color: is-dark ? #23203b : #f5f5f5;
+    in-out property <brush> text-color: is-dark ? #ffffff : #383838;
+    in-out property <brush> primary-color: #a05aff;
+    in-out property <brush> secondary-color: #1bcfb4;
+}
+
+export component MyButton inherits Rectangle {
+    in property <string> text: "";
+    in property <color> button-color: AppPalette.primary-color;
+    in property <color> text-color: #383838;
+    
+    callback clicked;
+
+    width: 60px;
+    height:  40px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: self.background.darker(20%);
+    
+    animate background { duration: 150ms; }
+
+    background: touch.pressed ? button-color.darker(30%) : 
+                touch.has-hover ? button-color.brighter(20%) : 
+                button-color;
+
+    HorizontalLayout {
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        alignment: center;
+
+        Text {
+            text: root.text;
+            color: root.text-color;
+            font-size: 16px;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+    touch := TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+export component TaskHeader inherits Rectangle {
+    in property <string> text: "";
+    in property <color> button-color: AppPalette.bg-color;
+    in property <color> text-color: AppPalette.text-color;
+    
+    callback clicked;
+
+    width: 80px;
+    height: 30px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: AppPalette.secondary-color;
+    
+    HorizontalLayout {
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        alignment: center;
+
+        Text {
+            text: root.text;
+            color: root.text-color;
+            font-size: 16px;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+    touch := TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+struct SlintTask {
+    id: int, //interni id
+    title: string,
+    status: int, //0 DNS, 1 In Progress, 2 Done
+    priority: int,
+    total_time: string,
+    deadline: string,
+}
+
+struct SlintCalendarEvent{
+    uid: string,
+    created: string, //CREATED:20151219T021727Z 2015. dec. 19, 02:17:27 UTC 
+    title: string,
+    begin_date: string,
+    end_date: string,
+}
+
+struct Note {
+    //Jole job
+}
+
+export component AppWindow inherits Window{
+    title: "Form of Notes";
+    icon: @image-url(""); //dodati logo
+    preferred-width: 700px;
+    preferred-height: 500px;
+    
+    in-out property <string> workspace-name: "My Workspace";
+    in-out property <int> current-tab: 0; //tasks, calendar, notes
+
+    in property <[SlintTask]> task-list : [];
+    in property <[SlintCalendarEvent]> events-list : [];
+
+    callback get-tasks(int) -> [SlintTask];
+    callback get-calendar() -> [SlintCalendarEvent];
+    callback workspace-rename(string);
+    callback change-folder();
+
+    background: AppPalette.bg-color;
+    default-font-family: "Arial";
+    default-font-size: 16px;
+
+    header := Rectangle{
+        property <string> workspace-name: "My workspace";
+        property <bool> light-mode: true;
+        in-out property <int> tab-index: 1;
+        in-out property <bool> is-editing: false;
+
+        height: 200px;
+        min-width: 800px;
+        VerticalLayout {
+            spacing: 10px;
+
+            HorizontalLayout {
+                HorizontalLayout {
+                    alignment: start;
+                    Image {
+                        height: root.height;
+                    }
+                    if is-editing : LineEdit {
+                        text: root.workspace-name;
+                        accepted(val) => {
+                            root.workspace-name = val;
+                            is-editing = false;
+                        }
+                    }
+                    if !is-editing : Text {
+                        text: root.workspace-name;
+
+                        TouchArea {
+                            clicked => {
+                                is-editing = true;
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    alignment: end;
+                    //export img
+                    spacing: 5px;
+                    MyButton {
+                        text: "Change Workplace";
+                        clicked => {root.change-folder();}
+                    }
+                    MyButton {
+                        text: AppPalette.is_dark ? "Light Mode" : "Dark Mode";
+                        clicked => {AppPalette.is-dark = !AppPalette.is-dark;}
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                alignment: center;
+                horizontal-stretch: 1; // pomera ih da razmak bude jednak
+                MyButton {
+                    text: "Tasks";
+                    button-color: root.current-tab == 0 ? AppPalette.primary-color : AppPalette.secondary-color;
+                    clicked => {root.current-tab = 0;}
+                }
+                MyButton {
+                    text: "Calendar";
+                    button-color: root.current-tab == 1 ? AppPalette.primary-color : AppPalette.secondary-color;
+                    clicked => {root.current-tab = 1;}
+                }
+                MyButton {
+                    text: "Notes";
+                    button-color: root.current-tab == 2 ? AppPalette.primary-color : AppPalette.secondary-color;
+                    clicked => {root.current-tab = 2;}
+                }
+            }
+        }
+        Rectangle {
+            width: root.width;
+            height: 2px;
+            background: @linear-gradient(90deg, AppPalette.primary-color.darker(60%) 10%,
+                AppPalette.primary-color 50%,AppPalette.primary-color.darker(60%) 90%);
+        }
+    }
+    
+    Rectangle {
+        if(root.current-tab == 0) : VerticalLayout {
+            in-out property <int> task-sort: 0;
+            in-out property <[SlintTask]> tasks;
+
+            HorizontalLayout {
+                alignment: start; //videti da li zelimo sort ili je cimanje zarad nicega
+                TaskHeader { text: "Name"; clicked => {tasks = root.get-tasks(1);}}
+                TaskHeader { text: "Priority"; clicked => {task-sort = 2;}}
+                TaskHeader { text: "Status";}
+                TaskHeader { text: "Deadline"; clicked => {task-sort = 3;}}
+                TaskHeader { text: "Time spent:";}
+            }
+
+            for item[i] in tasks : HorizontalLayout {
+                width: parent.width;
+                height: 30px;
+                in-out property <int> id: item.id;
+                Rectangle{
+                    width: 80px;
+                    height: parent.height;
+                    TouchArea {
+                        width: parent.width;
+                        height: parent.height;
+                        Text {
+                            vertical-alignment: center;
+                            horizontal-alignment: left;
+                            width: parent.width;
+                            height: parent.height;
+                            text: item.title;
+                        }
+                    }
+                }
+                Rectangle{
+                    background: AppPalette.bg-color;
+                    width: 40px;
+                    height: parent.height;
+                    Text{
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        text: item.status == 0 ? "Not started" : item.status == 1 ? "In progress" : "Finished";
+                        color: AppPalette.secondary-color;
+                    }
+                }
+                Rectangle {
+                    background: @linear-gradient(90deg, #471b80 20%, #ffffff 20%);
+                    height: parent.height;
+                    width: 50px;
+                }
+                Rectangle{
+                    Text{
+                    text : {
+                        if(item.priority == 5){return "Very high";}
+                        if(item.priority == 4){return "High";}
+                        if(item.priority == 3){return "Medium";}
+                        if(item.priority == 2){return "Low";}
+                        return "Very low";
+                    }
+                    color: #383838;
+                    }
+                    background : {
+                        if(item.priority == 5){return #ba0000;}
+                        if(item.priority == 4){return #d27700;}
+                        if(item.priority == 3){return #ead51d;}
+                        if(item.priority == 2){return #7ee045;}
+                        return #50ffd3;
+                    }
+                }
+                Rectangle {
+                    width: 40px;
+                    height: parent.height;
+                    TouchArea {
+                        width: parent.width;
+                        height: parent.height;
+                        txt := Text{
+                            in-out property <string> time-passed;
+                            text: time-passed;
+                        }
+                        tim := Timer {
+                            out property <int> hr: 0;
+                            out property <int> min: 0;
+                            interval: 60000ms;
+                            triggered() => {
+                                debug("count is:", min);
+                                min += 1;
+                                if(min > 60){
+                                    min -= 60;
+                                    hr += 1;
+                                }
+                            }
+                        }
+                        clicked => {
+                            if tim.running {
+                                tim.stop();
+                                txt.time-passed = tim.hr + ":" + tim.min;
+                                tim.restart();
+                            }
+                            if !tim.running {
+                                tim.start();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+>>>>>>> b0db0e1a6595a64514fc178636c79d3b853a2e01
 }
