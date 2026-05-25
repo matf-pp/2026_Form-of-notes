@@ -1,0 +1,280 @@
+import { ListView, LineEdit } from "std-widgets.slint";
+import { AppPalette } from "palette.slint";
+
+export struct SlintCalendarEvent{
+    uid: string,
+    title: string,
+    begin_day: int,
+    day_of_week: string,
+    begin_time: string,
+    end_time: string,
+}
+
+export struct DateInfo {
+    row_idx: int,
+    col_idx: int,
+    day-of-month: int,
+    has-event: bool,
+}
+
+export component CalendarView inherits HorizontalLayout{
+    in-out property <[SlintCalendarEvent]> events: [];
+    in-out property <[DateInfo]> days: [];
+    in-out property <int> month;
+    in-out property <int> year;
+    in-out property <int> days-in-month;
+    in-out property <string> month_name;
+    in-out property <bool> is-editing-event: false;
+    in-out property <bool> is-adding-event: false;
+
+    //We make the left handside thing
+    VerticalLayout {
+        width: 200px;
+        if is-adding-event == false && is-editing-event == false : ListView {
+            in-out property <int> previous-day: 0;
+            for data in events : Rectangle {
+                height: 30px;
+                background: AppPalette.bg-color;
+                width: 80px;
+                if previous-day != data.begin_day : VerticalLayout{
+                    Text {
+                        text: data.day_of_week + ", " + month_name + data.begin_day;
+                    }
+                    Rectangle {
+                        background: AppPalette.is-dark ? #dedede : #4e4e4e; // Color of the line
+                        height: 1px;         // Thickness of the line
+                        vertical-stretch: 0; // Prevents the line from expanding vertically
+                    }
+                }
+                HorizontalLayout {
+                    padding: 5px;
+                    in-out property <string> uid: data.uid;
+                    Rectangle{
+                        horizontal-stretch: 0;
+                        background: AppPalette.primary-color;
+                        width: 1px;
+                    }
+                    Text {
+                        text: data.title;
+                    }
+                    VerticalLayout {
+                        Text{text: data.begin_time;}
+                        Text{text: data.end_time;}
+                    }
+                    TouchArea {
+                        clicked => {
+                            is-editing-event = true;
+                            //add stuff to send (need an object name)
+                        }
+                    }
+                }
+            }
+        }
+        if is-adding-event : addEvent := VerticalLayout {
+            Text {text: "Event title:";}
+            LineEdit {placeholder-text: "My event"; }
+            Text {text: "Date:";}
+            HorizontalLayout {
+                out property <int> year: year-input.text.to-float();
+                out property <int> month: month-input.text.to-float();
+                out property <int> day: day-input.text.to-float();
+        
+
+                out property <int> max-days: 
+                month == 2 ? (is-leap-year ? 29 : 28) :
+                (month == 4 || month == 6 || month == 9 || month == 11) ? 30 : 31;
+
+                private property <bool> is-leap-year: 
+                    mod(year, 4) == 0 && (mod(year, 100) != 0 || mod(year, 400) == 0);
+
+                out property <bool> is-valid-date:
+                year-input.text.character-count == 4 &&
+                year >= 2026 && year <=  2100 &&
+                month >= 1 && month <= 12 && day >= 1 && day <= max-days;
+
+                day-input := LineEdit {
+                    placeholder-text: "DD";
+                    font-size: 14px;
+                    height: 36px;
+                    width: 50px;
+                }
+                month-input := LineEdit {
+                    placeholder-text: "MM";
+                    font-size: 14px;
+                    height: 36px;
+                    width: 50px;
+                }
+                year-input := LineEdit {
+                    placeholder-text: "YYYY";
+                    font-size: 14px;
+                    height: 36px;
+                    width: 70px;
+                }
+            }
+            Text {text: "Starts:";}
+            beg-input := HorizontalLayout {
+                in-out property <int> hours: beg-hour.text.to-float();
+                in-out property <int> mins: beg-hour.text.to-float();
+                in-out property <bool> is-valid:
+                hours >= 0 && hours < 24 
+                && mins >= 0 && mins < 60;
+
+                beg-hour := LineEdit {
+                    placeholder-text: "hh";
+                    font-size: 14px;
+                    height: 36px;
+                }
+                
+                beg-min := LineEdit {
+                    placeholder-text: "mm";
+                    font-size: 14px;
+                    height: 36px;
+                }
+            }
+            Text {text: "Ends:";}
+            end-input := HorizontalLayout {
+                in-out property <int> hours: beg-hour.text.to-float();
+                in-out property <int> mins: beg-hour.text.to-float();
+                in-out property <bool> is-valid:
+                hours >= 0 && hours < 24 
+                && mins >= 0 && mins < 60;
+
+                end-hour := LineEdit {
+                    placeholder-text: "hh";
+                    font-size: 14px;
+                    height: 36px;
+                }
+                
+                end-min := LineEdit {
+                    placeholder-text: "mm";
+                    font-size: 14px;
+                    height: 36px;
+                }
+            } 
+            Rectangle {
+                Text {text: "Submit";}
+                background: AppPalette.secondary-color;
+                border-radius: 5px;
+                width: 60px;
+                height: 30px;
+                TouchArea {
+                    clicked => {
+                        //send request to add event
+                        is-adding-event = false;
+                    }
+                }
+            }
+        }
+        if is-editing-event : editEvent := VerticalLayout {
+            in-out property <string> uid;
+            //add all of the things above
+        }
+    }
+    VerticalLayout {
+        HorizontalLayout{
+            Rectangle{
+                Text {
+                    text: "<";
+                }
+                width: 20px;
+                height: 20px;
+                border-radius: 10px;
+                background: AppPalette.primary-color;
+                TouchArea {
+                    clicked => {
+                        //get events from previous month
+                    }
+                }
+            }
+            Text{ //need to center
+                text: month_name;
+                horizontal-alignment: center;
+            }Rectangle{
+                Text {
+                    text: ">";
+                }
+                width: 20px;
+                height: 20px;
+                border-radius: 10px;
+                background: AppPalette.primary-color;
+                TouchArea {
+                    clicked => {
+                        //get events from next month
+                    }
+                }
+            }
+        }
+        HorizontalLayout{
+            spacing: 5px;
+            Text{
+                text: "Sunday";
+                width: 40px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+            Text{
+                text: "Monday";
+                width: 40px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+            Text{
+                text: "Tuesday";
+                width: 40px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+            Text{
+                text: "Wednesday";
+                width: 40px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+            Text{
+                text: "Thursday";
+                width: 40px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+            Text{
+                text: "Friday";
+                width: 40px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+            Text{
+                text: "Saturday";
+                width: 40px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+        }
+        GridLayout{
+            spacing: 5px;
+            for day in days : Rectangle {
+                row: day.row_idx;
+                col: day.col_idx;
+                width: 40px;
+                height: 40px;
+                VerticalLayout {
+                    Text{
+                        text: day.day-of-month;
+                    }
+                    if day.has-event : Rectangle{
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 5px;
+                        background: AppPalette.secondary-color;
+                    }
+                }
+                TouchArea {
+                    clicked => {
+                        is-adding-event = true;
+                        is-editing-event = false;
+                        //postaviti datum na izabrani
+                    }
+                }
+            }
+        }
+    }
+}

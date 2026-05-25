@@ -1,0 +1,67 @@
+import { AppPalette } from "palette.slint";
+import { LineEdit } from "std-widgets.slint";
+export enum FolderStatus {
+    None, Invalid, Valid, Checking  
+}
+
+export component FolderPicker inherits VerticalLayout{
+    in-out property <string> folder-path: "";
+    in-out property <FolderStatus> folder-status: FolderStatus.None;
+    in-out property <string> folder-error-message: "";
+    
+    //add needed functions here, unsure what's necessary
+    callback browse-clicked() -> string; //we need to see what it returns
+    callback check-manually(string);
+
+    Text{
+        text: "Choose your work folder";
+        font-size: 13px;
+        color: AppPalette.text-color;
+    }
+    HorizontalLayout {
+        folder-path-input := LineEdit {
+            text: folder-path;
+            placeholder-text: "/path/to/your/project";
+            accepted(text) => {
+                folder-path = self.text;
+                check-manually(self.text);
+            }
+        }
+        Rectangle {
+            width: 90px;
+            height: 40px;
+            background: AppPalette.primary-color;
+            border-radius: 6px;
+            HorizontalLayout {
+                alignment: center;
+                Image {} //add a lil directory img
+                Text {text: "Browse";}
+            }
+            TouchArea {
+                clicked => {browse-clicked();}
+            }
+        }
+    }
+    if folder-status != FolderStatus.None : HorizontalLayout {
+        spacing: 7px;
+        padding-top: 5px;
+        if folder-status == FolderStatus.Checking : Text {
+            text: "Checking...";
+        }
+        if folder-status == FolderStatus.Valid : Text {
+            text: "Folder found and accessible.";
+        }
+        if folder-status == FolderStatus.Invalid : Text {
+            text: folder-error-message;
+        }
+    }
+}
+
+/*
+_________________________
+|   ___________
+|   |     folder    | {check} -> idfk
+|   {{{{{}}}}}
+| status ????????
+
+*/
