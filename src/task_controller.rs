@@ -98,7 +98,7 @@ impl TaskController{
         self.tasks.clone()
     }
 
-    pub fn import_tasks(filepath: &str) -> Result<Self, Box<dyn std::error::Error>>{
+    pub fn import_tasks(&mut self, filepath: &str) -> Result<Self, Box<dyn std::error::Error>>{
         let json = std::fs::read_to_string(filepath)?;
         let controller = serde_json::from_str(&json)?;
         Ok(controller)

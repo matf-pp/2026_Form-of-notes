@@ -1,6 +1,11 @@
-use chrono::{NaiveDate, NaiveTime, Local, TimeZone};
+use serde::{Serialize, Deserialize};
+use chrono::{NaiveDate, NaiveDateTime, Local, TimeZone, Utc, Datelike};
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+use crate::calendar_controller::{CalendarController, UICalendarEvent, DateInfo};
+use crate::task_controller::{TaskController, Task};
+
+
+#[derive(Debug, Default)]
 pub struct AppState {
     pub calendar_controller: CalendarController,    
     pub task_controller: TaskController,
@@ -25,10 +30,14 @@ impl AppState {
         let tasks_path = format!("{}/tasks.json", self.folder_name);
         
         if std::path::Path::new(&calendar_path).exists() {
-            self.calendar_controller.import_calendar(calendar_path)?;
+            if let Err(e) = self.calendar_controller.import_calendar(&calendar_path){
+                eprintln!("Error loading: {}", e);
+            }
         }
         if std::path::Path::new(&tasks_path).exists() {
-            self.task_controller.import_tasks(tasks_path);
+            if let Err(e) = self.task_controller.import_tasks(&tasks_path) {
+                eprintln!("Error loading: {}", e);
+            }
         }
 
         Ok(())
@@ -49,7 +58,6 @@ impl AppState {
             if id >= self.task_controller.next_id { return false; }
             self.task_controller.change_task(id, new_priority, new_title.map(String::from), new_deadline.map(String::from))
         }
-        true
     }
 
     pub fn add_time(&mut self, id: u32, hours: u8, mins: u8){
@@ -58,7 +66,8 @@ impl AppState {
     }
 
     pub fn finish_task(&mut self, id: u32) -> bool{
-        self.task_controller.finish_task(id)
+        self.task_controller.finish_task(id);
+        true
     }
 
     pub fn get_tasks(&mut self, sort_by: u8) -> Vec<Task> {
@@ -66,7 +75,8 @@ impl AppState {
     }
 
     pub fn delete_task(&mut self, id: u32) -> bool {
-        self.task_controller.delete_task(id)
+        self.task_controller.delete_task(id);
+        true
     }
 
     pub fn add_event( &mut self, title: &str, day: u8, month: u8, year: u32,
@@ -99,7 +109,7 @@ impl AppState {
                 Some(format!("{:04}{:02}{:02}T{:02}{:02}00", y, m, d, eh, em))
             } else { None };
 
-        let res = self.calendar_controller.change_event(uid, new_title, new_begin, new_end);
+        let res = self.calendar_controller.change_event(uid, Some(title), new_begin, new_end);
         
         if res {
             let _ = self.calendar_controller.save(&format!("{}/calendar.ics", self.folder_name));
@@ -108,7 +118,8 @@ impl AppState {
     }
 
     pub fn delete_event(&mut self, uid: &str) -> bool {
-        self.calendar_controller.delete_event(uid)
+        self.calendar_controller.delete_event(uid);
+        true
     }
 
     pub fn get_events(&self, month: u32, year: u32) -> (Vec<UICalendarEvent>, Vec<DateInfo>) {
@@ -129,16 +140,15 @@ impl AppState {
     }
 
     pub fn make_date(&self, year: u32, month: u8, day: u8, hour: u8, mins: u8) -> String {
-        let local_dt = NaiveDate::from_yml_opt(year, month, day)
-            .and_then(|d| d.and_hms_opt(hour, mins, 0))
+        let local_dt = NaiveDate::from_ymd_opt(year as i32, month as u32, day as u32)
+            .and_then(|d| d.and_hms_opt(hour as u32, mins as u32, 0))
             .expect("Invalid date or time provided");
 
         let utc_dt = Local.from_local_datetime(&local_dt)
             .single() 
-            .unwrap_or_else(|| local_dt.and_utc()) 
-            .with_timezone(&chrono::Utc);
+            .unwrap_or_else(|| local_dt.and_local_timezone(Local).unwrap());
 
-        utc_dt.format("%Y%m%dT%H%M%SZ").to_string()
+        utc_dt.with_timezone(&chrono::Utc).format("%Y%m%dT%H%M%SZ").to_string()
     }
 
 }
