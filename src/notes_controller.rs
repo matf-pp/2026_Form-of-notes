@@ -110,7 +110,7 @@ impl NotesController {
         }
     }
 
-    pub fn filter_category(&self, category_id: Uuid) -> Vec<&Note> {
+    pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
         self.notes.values().filter(|note| note.categories.contains(&category_id)).collect()
     }
 }

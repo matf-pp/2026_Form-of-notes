@@ -3,12 +3,13 @@ use chrono::{NaiveDate, NaiveDateTime, Local, TimeZone, Utc, Datelike};
 
 use crate::calendar_controller::{CalendarController, UICalendarEvent, DateInfo};
 use crate::task_controller::{TaskController, Task};
-
+use crate::notes_controller::{NotesController, Note, Category};
 
 #[derive(Debug, Default)]
 pub struct AppState {
     pub calendar_controller: CalendarController,    
     pub task_controller: TaskController,
+    pub notes_controller: NotesController,
     folder_name: String,
 }
 
@@ -17,6 +18,7 @@ impl AppState {
         AppState {
             calendar_controller: CalendarController::new(),
             task_controller: TaskController::new(),
+            notes_controller: NotesController::new(),
             folder_name: folder.unwrap_or(if cfg!(target_os = "windows") {
                 "C:/Users/Public"
             } else {
@@ -151,4 +153,35 @@ impl AppState {
         utc_dt.with_timezone(&chrono::Utc).format("%Y%m%dT%H%M%SZ").to_string()
     }
 
+    pub fn create_note(&mut self, title: &str) {
+        self.notes_controller.create_note(title, "");
+    }
+
+    pub fn edit_note_content(&mut self, id: Uuid, content: &str) -> Result<(), String> {
+        self.notes_controller.edit_note_content(id, content)?;
+    }
+
+    pub fn edit_note_title(&mut self, id: Uuid, title: &str) -> Result<(), String> {
+        self.notes_controller.edit_note_title(id, title)?;
+    }
+
+    pub fn get_notes(&self) -> Vec<&Note> {
+        self.notes_controller.get_notes()
+    }
+
+    pub fn create_category(&mut self, name: &str, color: Option<&str>) {
+        self.notes_controller.create_category(name, color);
+    }
+
+    pub fn assign_category(&mut self, note_id: Uuid, category_id: Uuid) -> Result<(), String> {
+        self.notes_controller.assign_category(note_id, category_id)?;
+    }
+
+    pub fn remove_category(&mut self, note_id: Uuid, category_id: Uuid) -> Result<(), String> {
+        self.notes_controller.remove_category(note_id, category_id)?;
+    }
+
+    pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
+        self.notes_controller.filter_by_category(category_id)
+    }
 }
