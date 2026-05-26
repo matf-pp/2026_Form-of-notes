@@ -1,11 +1,11 @@
 import { AppPalette }                    from "palette.slint";
-import { MyButton, FoNLogo }                      from "commons.slint";
+import { MyButton, FoNLogo, MyText }                      from "commons.slint";
 import { SlintTask, TaskView }           from "tasks.slint";
 import { SlintCalendarEvent, CalendarView } from "calendar.slint";
 
 export component AppWindow inherits Window{
     title: "Form of Notes";
-    icon: @image-url(""); //dodati logo
+    icon: @image-url("ui/fonlogodark.png"); //dodati logo
     preferred-width: 800px;
     preferred-height: 600px;
     
@@ -38,7 +38,7 @@ export component AppWindow inherits Window{
                     HorizontalLayout {
                         alignment: start;
                         FoNLogo{}
-                        Text {
+                        MyText {
                             text: "My Workspace";
                         }
                     }

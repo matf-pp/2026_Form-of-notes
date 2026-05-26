@@ -1,5 +1,6 @@
 import { ListView, LineEdit } from "std-widgets.slint";
 import { AppPalette } from "palette.slint";
+import {MyText} from "commons.slint";
 
 export struct SlintCalendarEvent{
     uid: string,
@@ -26,6 +27,15 @@ export component CalendarView inherits HorizontalLayout{
     in-out property <string> month_name;
     in-out property <bool> is-editing-event: false;
     in-out property <bool> is-adding-event: false;
+    in-out property <string> selected-uid;
+
+
+/* add_event(title-input.text, day-input.text.to-float(), month-input.text.to-float(), year-input.text.to-float(),
+                            beg-hour.text.to-float(), beg-min.text.to-float(), end-hour.text.to-float(), end-min.to-float()); */
+
+    callback add_event(string, int, int, int, int, int, int, int);
+    callback change_event();
+    callback get_events(int, int);
 
     //We make the left handside thing
     VerticalLayout {
@@ -37,7 +47,7 @@ export component CalendarView inherits HorizontalLayout{
                 background: AppPalette.bg-color;
                 width: 80px;
                 if previous-day != data.begin_day : VerticalLayout{
-                    Text {
+                    MyText {
                         text: data.day_of_week + ", " + month_name + data.begin_day;
                     }
                     Rectangle {
@@ -54,15 +64,16 @@ export component CalendarView inherits HorizontalLayout{
                         background: AppPalette.primary-color;
                         width: 1px;
                     }
-                    Text {
+                    MyText {
                         text: data.title;
                     }
                     VerticalLayout {
-                        Text{text: data.begin_time;}
-                        Text{text: data.end_time;}
+                        MyText{text: data.begin_time;}
+                        MyText{text: data.end_time;}
                     }
                     TouchArea {
                         clicked => {
+                            selected-uid = parent.uid;
                             is-editing-event = true;
                             //add stuff to send (need an object name)
                         }
@@ -71,10 +82,10 @@ export component CalendarView inherits HorizontalLayout{
             }
         }
         if is-adding-event : addEvent := VerticalLayout {
-            Text {text: "Event title:";}
-            LineEdit {placeholder-text: "My event"; }
-            Text {text: "Date:";}
-            HorizontalLayout {
+            MyText {text: "Event title:";}
+            title-input := LineEdit {placeholder-text: "My event"; }
+            MyText {text: "Date:";}
+            addEventMain := HorizontalLayout {
                 out property <int> year: year-input.text.to-float();
                 out property <int> month: month-input.text.to-float();
                 out property <int> day: day-input.text.to-float();
@@ -87,7 +98,7 @@ export component CalendarView inherits HorizontalLayout{
                 private property <bool> is-leap-year: 
                     mod(year, 4) == 0 && (mod(year, 100) != 0 || mod(year, 400) == 0);
 
-                out property <bool> is-valid-date:
+                in-out property <bool> is-valid-date:
                 year-input.text.character-count == 4 &&
                 year >= 2026 && year <=  2100 &&
                 month >= 1 && month <= 12 && day >= 1 && day <= max-days;
@@ -111,7 +122,7 @@ export component CalendarView inherits HorizontalLayout{
                     width: 70px;
                 }
             }
-            Text {text: "Starts:";}
+            MyText {text: "Starts:";}
             beg-input := HorizontalLayout {
                 in-out property <int> hours: beg-hour.text.to-float();
                 in-out property <int> mins: beg-hour.text.to-float();
@@ -131,7 +142,7 @@ export component CalendarView inherits HorizontalLayout{
                     height: 36px;
                 }
             }
-            Text {text: "Ends:";}
+            MyText {text: "Ends:";}
             end-input := HorizontalLayout {
                 in-out property <int> hours: beg-hour.text.to-float();
                 in-out property <int> mins: beg-hour.text.to-float();
@@ -151,29 +162,47 @@ export component CalendarView inherits HorizontalLayout{
                     height: 36px;
                 }
             } 
-            Rectangle {
-                Text {text: "Submit";}
-                background: AppPalette.secondary-color;
+            addSubmit := Rectangle {
+                MyText {text: beg-input.is-valid && end-input.is-valid && addEventMain.is-valid-date ?
+                    "Submit" : "Incorrect format";}
+                background: beg-input.is-valid && end-input.is-valid && addEventMain.is-valid-date ? 
+                AppPalette.secondary-color : #c82323;
                 border-radius: 5px;
                 width: 60px;
                 height: 30px;
                 TouchArea {
                     clicked => {
-                        //send request to add event
+                        if(beg-input.is-valid && end-input.is-valid && addEventMain.is-valid-date){
+                            add_event(title-input.text, day-input.text.to-float(), month-input.text.to-float(), year-input.text.to-float(),
+                                beg-hour.text.to-float(), beg-min.text.to-float(), end-hour.text.to-float(), end-min.text.to-float());
+                            is-adding-event = false;
+                        }
+                    }
+                }
+            }
+            Rectangle {
+                MyText {text: "Cancel";}
+                background: AppPalette.primary-color ;
+                border-radius: 5px;
+                width: 60px;
+                height: 30px;
+                TouchArea {
+                    clicked => {
                         is-adding-event = false;
                     }
                 }
             }
         }
         if is-editing-event : editEvent := VerticalLayout {
-            in-out property <string> uid;
-            //add all of the things above
+            in-out property <string> uid: selected-uid;
+            //add all of the things above ???????????????????? GURL YOU LAZY ong
+            //We'll add this after the thing above is tested cause it's practically the same thing
         }
     }
     VerticalLayout {
         HorizontalLayout{
             Rectangle{
-                Text {
+                MyText {
                     text: "<";
                 }
                 width: 20px;
@@ -182,15 +211,15 @@ export component CalendarView inherits HorizontalLayout{
                 background: AppPalette.primary-color;
                 TouchArea {
                     clicked => {
-                        //get events from previous month
+                        get_events(month - 1, year);
                     }
                 }
             }
-            Text{ //need to center
+            MyText{ //need to center
                 text: month_name;
                 horizontal-alignment: center;
             }Rectangle{
-                Text {
+                MyText {
                     text: ">";
                 }
                 width: 20px;
@@ -199,50 +228,50 @@ export component CalendarView inherits HorizontalLayout{
                 background: AppPalette.primary-color;
                 TouchArea {
                     clicked => {
-                        //get events from next month
+                        get_events(month+1, year)
                     }
                 }
             }
         }
         HorizontalLayout{
             spacing: 5px;
-            Text{
+            MyText{
                 text: "Sunday";
                 width: 40px;
                 font-weight: 600;
                 horizontal-alignment: center;
             }
-            Text{
+            MyText{
                 text: "Monday";
                 width: 40px;
                 font-weight: 600;
                 horizontal-alignment: center;
             }
-            Text{
+            MyText{
                 text: "Tuesday";
                 width: 40px;
                 font-weight: 600;
                 horizontal-alignment: center;
             }
-            Text{
+            MyText{
                 text: "Wednesday";
                 width: 40px;
                 font-weight: 600;
                 horizontal-alignment: center;
             }
-            Text{
+            MyText{
                 text: "Thursday";
                 width: 40px;
                 font-weight: 600;
                 horizontal-alignment: center;
             }
-            Text{
+            MyText{
                 text: "Friday";
                 width: 40px;
                 font-weight: 600;
                 horizontal-alignment: center;
             }
-            Text{
+            MyText{
                 text: "Saturday";
                 width: 40px;
                 font-weight: 600;
@@ -257,7 +286,7 @@ export component CalendarView inherits HorizontalLayout{
                 width: 40px;
                 height: 40px;
                 VerticalLayout {
-                    Text{
+                    MyText{
                         text: day.day-of-month;
                     }
                     if day.has-event : Rectangle{

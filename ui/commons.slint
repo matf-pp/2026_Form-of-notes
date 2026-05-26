@@ -1,5 +1,11 @@
 import { AppPalette } from "palette.slint";
 
+export component MyText inherits Text {
+    color: AppPalette.text-color;
+    font-size: 14px;
+    font-family: "Arial";
+}
+
 export component MyButton inherits Rectangle {
     in property <string> text: "";
     in property <color> button-color: AppPalette.primary-color;
