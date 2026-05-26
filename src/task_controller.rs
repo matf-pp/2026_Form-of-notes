@@ -52,7 +52,7 @@ impl TaskController{
             if let Some(p) = p {task.priority = p;}
             if let Some(t) = t {task.title = t;}
             if d.is_some() {task.deadline = d;}
-            true
+            return true;
         }
         false
     }
@@ -84,8 +84,10 @@ impl TaskController{
         }else if sortby == 2 {
             //add for 2 and 3 to leave the finished ones at the end
             self.tasks.sort_by(|a, b| {
-                b.status.eq(&2).cmp(&a.status.eq(&2))
-                .then(b.priority.cmp(&a.priority))
+                let status_a = a.status == 2;
+                let status_b = b.status == 2;
+                status_a.cmp(&status_b)
+                    .then(b.priority.cmp(&a.priority))
             });
         }else if sortby == 3 {
             self.tasks.sort_by(|a, b| {
@@ -107,7 +109,7 @@ impl TaskController{
         std::fs::write(filepath, json)?;
         Ok(())
     }
-    pub fn delete_task(&self, id: u32) -> bool {
+    pub fn delete_task(&mut self, id: u32) -> bool {
         let initial_len = self.tasks.len();
         self.tasks.retain(|task| task.id != id);
         self.tasks.len() < initial_len 
