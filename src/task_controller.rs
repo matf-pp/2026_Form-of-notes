@@ -87,12 +87,21 @@ impl TaskController{
                 let status_a = a.status == 2;
                 let status_b = b.status == 2;
                 status_a.cmp(&status_b)
-                    .then(b.priority.cmp(&a.priority))
+                    .then(a.priority.cmp(&b.priority))
             });
         }else if sortby == 3 {
             self.tasks.sort_by(|a, b| {
-                a.status.eq(&2).cmp(&b.status.eq(&2))
-                    .then(a.deadline.cmp(&b.deadline)) 
+                let status_a = a.status == 2;
+                let status_b = b.status == 2;
+                status_a.cmp(&status_b)
+                    .then_with(|| {
+                        match (&a.deadline, &b.deadline) {
+                            (Some(da), Some(db)) => da.cmp(db),
+                            (Some(_), None) => std::cmp::Ordering::Less,    // Has deadline comes first
+                            (None, Some(_)) => std::cmp::Ordering::Greater, // No deadline goes last
+                            (None, None) => std::cmp::Ordering::Equal,
+                        }
+                    }) 
             });
         }
         self.tasks.clone()

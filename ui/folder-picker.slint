@@ -14,7 +14,7 @@ export component FolderPicker inherits VerticalLayout{
     callback browse-clicked() -> string; //we need to see what it returns
     callback check-manually(string);
 
-    Text{
+    MyText{
         text: "Choose your work folder";
         font-size: 13px;
         color: AppPalette.text-color;
@@ -36,7 +36,7 @@ export component FolderPicker inherits VerticalLayout{
             HorizontalLayout {
                 alignment: center;
                 Image {} //add a lil directory img
-                Text {text: "Browse";}
+                MyText {text: "Browse";}
             }
             TouchArea {
                 clicked => {browse-clicked();}
@@ -46,13 +46,13 @@ export component FolderPicker inherits VerticalLayout{
     if folder-status != FolderStatus.None : HorizontalLayout {
         spacing: 7px;
         padding-top: 5px;
-        if folder-status == FolderStatus.Checking : Text {
+        if folder-status == FolderStatus.Checking : MyText {
             text: "Checking...";
         }
-        if folder-status == FolderStatus.Valid : Text {
+        if folder-status == FolderStatus.Valid : MyText {
             text: "Folder found and accessible.";
         }
-        if folder-status == FolderStatus.Invalid : Text {
+        if folder-status == FolderStatus.Invalid : MyText {
             text: folder-error-message;
         }
     }

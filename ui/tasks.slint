@@ -15,10 +15,14 @@ export struct SlintTask {
 
 export component TaskView inherits VerticalLayout {
     in-out property <[SlintTask]> tasks: [];
+    in-out property <bool> is-deadline-valid;
 
     callback get-tasks(int) -> [SlintTask];
-    callback edit-task(int, string, int, string);
-    callback update-time(int, string);
+    callback modify-task(int,int, string, string); //id, priority, title, deadline
+    callback update-time(int, int, int); //add_time id, hours, mins
+    callback finish-task(int);
+    callback delete-task(int);
+    callback is-valid-date(string) -> bool;
 
     padding: 10px;
     spacing: 4px;
@@ -26,10 +30,8 @@ export component TaskView inherits VerticalLayout {
     HorizontalLayout {
         MyText{
             text: "My tasks";
-        }
-        MyButton {
-            text: form-area.visible ? "Cancel" : "Add Task";
-            clicked => { form-area.visible = !form-area.visible; }
+            font-size: 25px;
+            horizontal-alignment: start;
         }
     }
 
@@ -46,7 +48,7 @@ export component TaskView inherits VerticalLayout {
         // local state for the form fields
         in-out property <int> wanted-id: -1;
         in-out property <string> new-title: "";
-        in-out property <int>    new-priority: 3;       // default Medium
+        in-out property <int>    new-priority: 1;       // default Medium
         in-out property <string> new-deadline: "";
 
         VerticalLayout {
@@ -64,6 +66,7 @@ export component TaskView inherits VerticalLayout {
                 }
                 LineEdit {
                     placeholder-text: "My Task...";
+                    width: 300px;
                     text: form-area.new-title;
                     edited(val) => { form-area.new-title = val; }
                 }
@@ -79,7 +82,8 @@ export component TaskView inherits VerticalLayout {
                     vertical-alignment: center;
                 }
                 MyButton {
-                    text: "–";
+                    Text{width: parent.width; height: parent.height;
+                        horizontal-alignment: center; vertical-alignment: center; text: "-";}
                     width: 36px;
                     clicked => {
                         if form-area.new-priority > 1 {
@@ -92,7 +96,7 @@ export component TaskView inherits VerticalLayout {
                     height: 36px;
                     border-radius: 6px;
                     border-width: 1px;
-                    border-color: AppPalette.secondary-color;
+                    border-color: self.background.darker(30%);
                     background: form-area.new-priority == 5 ? #ba0000 :
                                 form-area.new-priority == 4 ? #d27700 :
                                 form-area.new-priority == 3 ? #ead51d :
@@ -110,7 +114,8 @@ export component TaskView inherits VerticalLayout {
                     }
                 }
                 MyButton {
-                    text: "+";
+                    Text{width: parent.width; height: parent.height;
+                        horizontal-alignment: center; vertical-alignment: center; text: "+";}
                     width: 36px;
                     clicked => {
                         if form-area.new-priority < 5 {
@@ -129,15 +134,20 @@ export component TaskView inherits VerticalLayout {
                     width: 70px;
                     vertical-alignment: center;
                 }
-                LineEdit {
-                    placeholder-text: "dd.mm.yyyy";
+                dl := LineEdit {
+                    width: 300px;
+                    placeholder-text: "YYYY.MM.DD";
                     text: form-area.new-deadline;
-                    edited(val) => { form-area.new-deadline = val; }
+                    edited(val) => { 
+                        form-area.new-deadline = val;
+                        is-deadline-valid = (is-valid-date(dl.text)) || (dl.text.character-count == 0) || (dl.text.character-count == 10); 
+                    }
                 }
-            }
-
-            // Confirm button
-            HorizontalLayout {
+                MyText {
+                    text: is-deadline-valid ? "Valid!" : "Invalid date.";
+                    color: is-deadline-valid ? AppPalette.secondary-color : #bd2323;
+                }
+                HorizontalLayout {
                 alignment: end;
                 MyButton {
                     text: "Add";
@@ -145,44 +155,66 @@ export component TaskView inherits VerticalLayout {
                         AppPalette.primary-color.darker(40%) :
                         AppPalette.primary-color;
                     clicked => {
-                        if form-area.new-title != "" {
-                            edit-task(
+                        if form-area.new-title != "" && is-deadline-valid{
+                            modify-task(
                                 form-area.wanted-id,
-                                form-area.new-title,
                                 form-area.new-priority,
+                                form-area.new-title,
                                 form-area.new-deadline
                             );
                             tasks = get-tasks(0);
                             // reset form
                             form-area.new-title = "";
-                            form-area.new-priority = 3;
+                            form-area.new-priority = 1;
                             form-area.new-deadline = "";
                             form-area.visible = false;
                         }
                     }
                 }
             }
+            }
+
+            // Confirm button
+            
         }
     }
 
     HorizontalLayout {
-        spacing: 0px;
-        TaskHeader { text: "Name"; clicked => {tasks = root.get-tasks(1);}}
-        TaskHeader { text: "Priority"; clicked => {tasks = root.get-tasks(2);}}
-        TaskHeader { text: "Status";}
-        TaskHeader { text: "Deadline"; clicked => {tasks = root.get-tasks(3);}}
-        TaskHeader { text: "Time spent:";}
+        HorizontalLayout {
+            spacing: 10px;
+            alignment: start;
+            TaskHeader { text: "Name"; clicked => {tasks = root.get-tasks(1);}}
+            TaskHeader { text: "Status";}
+            TaskHeader { text: "Priority"; clicked => {tasks = root.get-tasks(2);}}
+            TaskHeader { text: "Deadline"; clicked => {tasks = root.get-tasks(3);}}
+            TaskHeader { text: "Time spent:";}
+        }
+        HorizontalLayout {
+            alignment: end;
+            MyButton {
+                text: form-area.visible ? "Cancel" : "Add Task";
+                clicked => { 
+                    form-area.visible = !form-area.visible; 
+                    form-area.wanted-id = 0;
+                    form-area.new-priority = 1;
+                    form-area.new-deadline = "";
+                    form-area.new-title = "";
+                }
+            }
+        }
+
     }
 
     for item[i] in tasks : HorizontalLayout {
         height: 34px;
-        spacing: 0px;
+        spacing: 10px;
+        alignment: start;
         in-out property <int> task-id: item.id;
 
         //------------------------------------Title----------------------------
         Rectangle{
-            width: 80px;
-            height: parent.height;
+            width: 120px;
+            height: 30px;
             TouchArea {
                 width: parent.width;
                 height: parent.height;
@@ -205,8 +237,8 @@ export component TaskView inherits VerticalLayout {
 //------------------------------------Status----------------------------
         Rectangle{
             background: AppPalette.bg-color;
-            width: 40px;
-            height: parent.height;
+            width: 120px;
+            height: 30px;
             MyText{
                 horizontal-alignment: center;
                 vertical-alignment: center;
@@ -216,6 +248,8 @@ export component TaskView inherits VerticalLayout {
         }
 //------------------------------------Priority----------------------------
         Rectangle{
+            width: 120px;
+            height: 30px;
             MyText{
                 text : item.priority == 5 ? "Very high" :
                     item.priority == 4 ? "High" :
@@ -232,6 +266,8 @@ export component TaskView inherits VerticalLayout {
         }
 //------------------------------------Deadline----------------------------
         Rectangle{
+            width: 120px;
+            height: 30px;
             MyText{
                 text : item.deadline;
                 color: AppPalette.text-color;
@@ -240,47 +276,76 @@ export component TaskView inherits VerticalLayout {
         }
 //------------------------------------TimePassed----------------------------
         Rectangle {
-            width: 40px;
-            height: parent.height;
-            Rectangle {
-                width: 100px;
-                height: parent.height;
-                txt := MyText{
-                    in-out property <int> days-passed: item.total-days;
-                    in-out property <int> hrs-passed: item.total-hours;
-                    in-out property <int> mins-passed: item.total-mins;
-                    text: tim.running ? (tim.hr < 10 ? "0" : "") + tim.hr + ":" + (tim.hr < 10 ? "0" : "") + tim.min :
-                        days-passed + ":" + hrs-passed + ":" + mins-passed;
-                }
-                tim := Timer {
-                    out property <int> hr: 0;
-                    out property <int> min: 0;
-                    interval: 60000ms;
-                    triggered() => {
-                        min += 1;
-                        if(min >= 60){
-                            min -= 60;
-                            hr += 1;
-                        }
+            width: 120px;
+            height: 30px;
+
+            border-color: ar.pressed ? AppPalette.primary-color.darker(30%) : 
+                ar.has-hover ? AppPalette.primary-color.brighter(20%) : 
+                AppPalette.primary-color;
+            txt := MyText{
+                in-out property <int> days-passed: item.total-days;
+                in-out property <int> hrs-passed: item.total-hours;
+                in-out property <int> mins-passed: item.total-mins;
+                text: tim.running ? (tim.hr < 10 ? "0" : "") + tim.hr + ":" + (tim.hr < 10 ? "0" : "") + tim.min :
+                    (days-passed < 10 ? "0" : "") + days-passed  + ":" + 
+                    (hrs-passed < 10 ? "0" : "") + hrs-passed + ":" + 
+                    (mins-passed < 10 ? "0" : "") + mins-passed;
+            }
+            tim := Timer {
+                running: false;
+                out property <int> hr: 0;
+                out property <int> min: 0;
+                interval: 60000ms;
+                triggered() => {
+                    min += 1;
+                    if(min >= 60){
+                        min -= 60;
+                        hr += 1;
                     }
                 }
-                TouchArea {
-                    width: parent.width;
-                    height: parent.height;
+            }
+            ar := TouchArea {
+                width: parent.width;
+                height: parent.height;
 
-                    clicked => {
-                        if tim.running {
-                            tim.stop();
-                            update-time(task-id, (tim.hr < 10 ? "0" : "") + tim.hr + ":" + (tim.hr < 10 ? "0" : "") + tim.min);
-                            
-                            tim.hr = 0;
-                            tim.min = 0;
-                        } else {
-                            tim.start();
-                        }
+                clicked => {
+                    if tim.running {
+                        tim.stop();
+                        update-time(task-id, tim.hr, tim.min);
+                        
+                        tim.hr = 0;
+                        tim.min = 0;
+                    } else {
+                        tim.start();
                     }
                 }
             }
         }
+        Rectangle{
+            width: 80px;
+            height: 30px;
+            background: ar2.pressed ? AppPalette.primary-color.darker(30%) : 
+                ar2.has-hover ? AppPalette.primary-color.brighter(20%) : 
+                AppPalette.primary-color;
+            MyText{text: "Finish!"; color: white;}
+            ar2 := TouchArea {
+                clicked => {
+                    finish-task(task-id);
+                }
+            }
+        }
+        Rectangle{
+            width: 80px;
+            height: 30px;
+            background: ar3.pressed ? #720e0e :
+                ar3.has-hover ? #d31c1c : #a33434;
+            MyText{text: "Delete"; color: white;}
+            ar3 := TouchArea {
+                clicked => {
+                    delete-task(task-id);
+                }
+            }
+        }
     }
+    Rectangle{}
 }

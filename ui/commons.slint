@@ -55,12 +55,15 @@ export component TaskHeader inherits Rectangle {
     
     callback clicked;
 
-    width: 80px;
+    width: 120px;
     height: 30px;
     border-radius: 8px;
     border-width: 1px;
-    border-color: AppPalette.secondary-color;
     
+    border-color: touch.pressed ? AppPalette.secondary-color.darker(30%) : 
+                touch.has-hover ? AppPalette.secondary-color.brighter(20%) : 
+                AppPalette.secondary-color;
+
     HorizontalLayout {
         padding-left: 10px;
         padding-right: 10px;
@@ -77,6 +80,7 @@ export component TaskHeader inherits Rectangle {
             overflow: elide;
         }
     }
+
     touch := TouchArea {
         clicked => {
             root.clicked();

@@ -1,34 +1,49 @@
 import { AppPalette }                    from "palette.slint";
 import { MyButton, FoNLogo, MyText }                      from "commons.slint";
 import { SlintTask, TaskView }           from "tasks.slint";
-import { SlintCalendarEvent, CalendarView } from "calendar.slint";
+import { SlintCalendarEvent, CalendarView, DateInfo } from "calendar.slint";
 
 export component AppWindow inherits Window{
     title: "Form of Notes";
-    icon: @image-url("ui/fonlogodark.png"); //dodati logo
-    preferred-width: 800px;
-    preferred-height: 600px;
-    
-    in-out property <int> current-tab: 0; //tasks, calendar, notes
-    in-out property <[SlintTask]> tasks: [];
-    in-out property <[SlintCalendarEvent]> events: [];
+    icon: @image-url("fonlogo-light.png"); //dodati logo
+    min-width: 1200px;
+    min-height: 700px;
 
-    callback import_workspace(string);
-    callback get-tasks(int) -> [SlintTask];
-    callback get-calendar() -> [SlintCalendarEvent];
+    in-out property <int> current-tab: 0; //tasks, calendar, notes
+
     callback change-folder(string);
-    callback update-time(int, string);
+
+
+    // Tasks 
+    callback get-tasks <=> task-view.get-tasks;
+    callback modify-task <=> task-view.modify-task;
+    callback update-time <=> task-view.update-time;
+    callback finish-task <=> task-view.finish-task;
+    callback delete-task <=> task-view.delete-task;
+    callback is-valid-date <=> task-view.is-valid-date;
+    in-out property <[SlintTask]> tasks <=> task-view.tasks;
+
+    // Calendar
+    callback add-event <=> calendar-view.add_event;
+    callback change-event <=> calendar-view.change_event;
+    callback get-events <=> calendar-view.get_events;
+    callback delete-event <=> calendar-view.delete_event;
+    
+    in-out property <bool> is-deadline-valid <=> task-view.is-deadline-valid;
+    in-out property <[SlintCalendarEvent]> events <=> calendar-view.events;
+    in-out property <[DateInfo]> calendar-days <=> calendar-view.days;
+    in-out property <int> calendar-month <=> calendar-view.month;
+    in-out property <int> calendar-year <=> calendar-view.year;
+    in-out property <string> calendar-month-name <=> calendar-view.month_name;
+
 
     background: AppPalette.bg-color;
     default-font-family: "Arial";
     default-font-size: 16px;
 
     VerticalLayout {
-        header := Rectangle{
-            property <string> workspace-name: "My workspace";
-            in-out property <bool> is-editing: false;
-
-            height: 120px;
+        header := VerticalLayout{
+            height: 180px;
             VerticalLayout {
                 spacing: 10px;
                 padding: 10px;
@@ -37,17 +52,25 @@ export component AppWindow inherits Window{
                     spacing: 10px;
                     HorizontalLayout {
                         alignment: start;
-                        FoNLogo{}
+                        FoNLogo{
+                            width: 120px;
+                            height: 120px;
+                        }
                         MyText {
                             text: "My Workspace";
+                            vertical-alignment: center;
+                            font-size: 25px;
                         }
                     }
+                    VerticalLayout {
+                    alignment: center;
                     HorizontalLayout {
                         alignment: end;
                         //export img
                         spacing: 5px;
                         MyButton {
-                            text: "Change Workplace";
+                            width: 200px;
+                            text: "Change work folder";
                             clicked => {
                             //    root.change-folder();
                             }
@@ -57,17 +80,18 @@ export component AppWindow inherits Window{
                             clicked => {AppPalette.is-dark = !AppPalette.is-dark;}
                         }
                     }
+                    }
                 }
 
                 HorizontalLayout {
                     alignment: center;
-                    horizontal-stretch: 1; // pomera ih da razmak bude jednak
+                    spacing: 40px;
                     MyButton {
                         text: "Tasks";
                         button-color: root.current-tab == 0 ? AppPalette.primary-color : AppPalette.secondary-color;
                         clicked => {
                             root.current-tab = 0;
-                            root.tasks = root.get-tasks(5);
+                            //root.tasks = root.get-tasks(5);
                         }
                     }
                     MyButton {
@@ -75,7 +99,7 @@ export component AppWindow inherits Window{
                         button-color: root.current-tab == 1 ? AppPalette.primary-color : AppPalette.secondary-color;
                         clicked => {
                             root.current-tab = 1;
-                            root.events = root.get-calendar();
+                            //root.events = root.get-calendar();
                         }
                     }
                     MyButton {
@@ -85,23 +109,12 @@ export component AppWindow inherits Window{
                     }
                 }
             }
-            Rectangle {
-                y: header.height - 2px;
-                width: header.width;
-                height: 2px;
-                background: @linear-gradient(90deg, 
-                    AppPalette.primary-color.darker(60%) 10%,
-                    AppPalette.primary-color 50%,
-                    AppPalette.primary-color.darker(60%) 90%);
-            }
         }
-        if root.current-tab == 0 : TaskView {
-            tasks: root.tasks;
-            get-tasks(s) => {root.get-tasks(s)}
-            update-time(id, t) => {root.update-time(id, t)}
+        task-view := TaskView {
+            visible: root.current-tab == 0;
         }
-        if root.current-tab == 2 : CalendarView {
-
+        calendar-view := CalendarView {
+            visible: root.current-tab == 1;
         }
         /*if root.current-tab == 2 : NotesView {
 
