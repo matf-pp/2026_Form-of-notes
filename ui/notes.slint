@@ -1,0 +1,206 @@
+import { Button, LineEdit, TextEdit, ListView, ScrollView } from "std-widgets.slint";
+import { AppPalette } from "palette.slint";
+import { TaskHeader, MyButton, MyText } from "commons.slint";
+
+export struct SlintCategory {
+    id: string,
+    name: string,
+    color: string,
+}
+
+export struct SlintNote {
+    id: string,
+    title: string,
+    content: string,
+    category-ids: [string],
+    last-update: string,
+}
+
+component NoteListItem {
+    in property <string> title;
+    in property <[string]> category-ids;
+    in property <bool> selected;
+    callback clicked;
+
+    touch := TouchArea { clicked => { root.clicked(); } }
+
+    Rectangle {
+        background: root.selected ? AppPalette.secondary-color.darker(10%) : (touch.has-hover ? AppPalette.secondary-color.brighter(10%) : transparent);
+        border-radius: 6px;
+        animate background { duration: 150ms; }
+
+        VerticalLayout {
+            padding: 10px;
+            spacing: 6px;
+
+            Text {
+                text: root.title == "" ? "Untitled Note" : root.title;
+                font-size: 15px;
+                font-weight: root.selected ? 600 : 400;
+                color: AppPalette.is-dark ? white : #333333;
+            }
+            
+            HorizontalLayout {
+                spacing: 4px;
+                alignment: start;
+                for id in root.category-ids : Rectangle {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 5px;
+                    background: AppPalette.primary-color;
+                }
+            }
+        }
+    }
+}
+
+component CategoryTag {
+    in property <string> name;
+    in property <string> color;
+    in property <bool> active;
+    callback clicked;
+
+    touch := TouchArea { clicked => { root.clicked(); } }
+
+    Rectangle {
+        background: root.active ? AppPalette.primary-color : AppPalette.secondary-color;
+        border-radius: 12px;
+        border-width: 1px;
+        border-color: root.active ? transparent : AppPalette.primary-color.darker(10%);
+        animate background { duration: 100ms; }
+
+        Text {
+            text: root.name;
+            font-size: 13px;
+            color: root.active ? white : (AppPalette.is-dark ? #dddddd : #333333);
+            padding: 12px;
+        }
+    }
+}
+
+export component NotesView inherits HorizontalLayout {
+    callback new-note();
+    callback add-category(string);
+    callback select-category(string);
+    callback select-note(int);
+    callback change-note-title(string);
+    callback change-note-content(string);
+
+    in property <[SlintCategory]> categories: [];
+    in property <[SlintNote]> notes: [];
+    in property <string> active-category-id: "all";
+    in property <int> selected-note-index: -1;
+    
+    in-out property <string> editing-title: "";
+    in-out property <string> editing-content: "";
+
+    spacing: 0px;
+
+    Rectangle {
+        width: 500px;
+        background: AppPalette.bg-color.darker(5%);
+
+        VerticalLayout {
+            padding: 12px;
+            spacing: 12px;
+            
+            HorizontalLayout {
+                spacing: 8px;
+                height: 35px;
+                
+                MyButton {
+                    width: 230px;
+                    text: "New Note";
+                    clicked => { root.new-note(); }
+                }
+                
+                MyButton {
+                    width: 230px;
+                    text: "Add Category";
+                    clicked => { root.add-category("New Category"); }
+                }
+            }
+
+            Text { 
+                text: "FILTERS"; 
+                font-weight: 700; 
+                color: AppPalette.is-dark ? #888888 : #666666; 
+                font-size: 11px; 
+            }
+            
+            HorizontalLayout {
+                ScrollView {
+                    viewport-width: 450px;
+                    height: 50px;
+                    HorizontalLayout {
+                        spacing: 6px;
+                        CategoryTag {
+                            name: "All Notes";
+                            active: root.active-category-id == "all";
+                            clicked => { root.select-category("all"); }
+                        }
+                        for cat in root.categories : CategoryTag {
+                            name: cat.name;
+                            color: cat.color;
+                            active: cat.id == root.active-category-id;
+                            clicked => { root.select-category(cat.id); }
+                        }
+                    }
+                }
+            }
+
+            Rectangle { height: 1px; background: AppPalette.secondary-color; }
+
+            Text { 
+                text: "NOTES"; 
+                font-weight: 700; 
+                color: AppPalette.is-dark ? #888888 : #666666; 
+                font-size: 11px; 
+            }
+            
+            ListView {
+                for note[index] in root.notes : NoteListItem {
+                    title: note.title;
+                    category-ids: note.category-ids;
+                    selected: index == root.selected-note-index;
+                    clicked => { root.select-note(index); }
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        horizontal-stretch: 1;
+
+        if root.selected-note-index != -1 : VerticalLayout {
+            padding: 20px;
+            spacing: 15px;
+
+            LineEdit {
+                text: root.editing-title;
+                placeholder-text: "Enter Note Title...";
+                font-size: 22px;
+                height: 40px;
+                edited(text) => { root.change-note-title(text); }
+            }
+
+            Rectangle { height: 1px; background: AppPalette.secondary-color; }
+
+            TextEdit {
+                text: root.editing-content;
+                font-size: 16px;
+                edited(text) => { root.change-note-content(text); }
+            }
+        }
+
+        if root.selected-note-index == -1 : VerticalLayout {
+            alignment: center;
+            Text {
+                text: "Select a note to view or edit details.";
+                horizontal-alignment: center;
+                font-size: 16px;
+                color: AppPalette.is-dark ? #777777 : #999999;
+            }
+        }
+    }
+}
