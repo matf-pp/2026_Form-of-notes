@@ -3,6 +3,7 @@ slint::include_modules!();
 mod app_state;
 mod calendar_controller;
 mod task_controller;
+mod notes_controller;
 
 use app_state::AppState;
 use chrono::{Datelike, Local, NaiveDate};

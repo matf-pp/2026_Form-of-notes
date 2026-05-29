@@ -1,6 +1,7 @@
-use std::collections::{HashMap, HashSet}
+use std::collections::{HashMap, HashSet};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Note {
@@ -18,7 +19,7 @@ pub struct Category {
     pub color: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct NotesController {
     notes: HashMap<Uuid, Note>,
     categories: HashMap<Uuid, Category>,
@@ -38,7 +39,7 @@ impl NotesController {
             title: title.to_string(),
             content: content.to_string(),
             categories: HashSet::new(),
-            last_update: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_sec(),
+            last_update: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs(),
         };
         self.notes.insert(note.id, note.clone());
         note
@@ -47,7 +48,7 @@ impl NotesController {
     pub fn edit_note_content(&mut self, id: Uuid, content: &str) -> Result<(), String> {
         if let Some(note) = self.notes.get_mut(&id) {
             note.content = content.to_string();
-            note.last_update = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_sec();
+            note.last_update = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
             Ok(())
         } else {
             Err("Note not found".to_string())
@@ -57,7 +58,7 @@ impl NotesController {
     pub fn edit_note_title(&mut self, id: Uuid, title: &str) -> Result<(), String> {
         if let Some(note) = self.notes.get_mut(&id) {
             note.title = title.to_string();
-            note.last_update = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_sec();
+            note.last_update = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
             Ok(())
         } else {
             Err("Note not found".to_string())
@@ -85,11 +86,11 @@ impl NotesController {
     }
 
     pub fn assign_category(&mut self, note_id: Uuid, category_id: Uuid) -> Result<(), String> {
-        if !self.categories.contains_key(&categories_id) {
+        if !self.categories.contains_key(&category_id) {
             return Err("Category does not exist".to_string());
         }
 
-        if let Some(note) = self.notes.get_mut(&id) {
+        if let Some(note) = self.notes.get_mut(&note_id) {
             note.categories.insert(category_id);
             Ok(())
         } else {
@@ -98,11 +99,11 @@ impl NotesController {
     }
 
     pub fn remove_category(&mut self, note_id: Uuid, category_id: Uuid) -> Result<(), String> {
-        if !self.categories.contains_key(&categories_id) {
+        if !self.categories.contains_key(&category_id) {
             return Err("Category does not exist".to_string());
         }
 
-        if let Some(note) = self.notes.get_mut(&id) {
+        if let Some(note) = self.notes.get_mut(&note_id) {
             note.categories.remove(&category_id);
             Ok(())
         } else {
@@ -112,5 +113,45 @@ impl NotesController {
 
     pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
         self.notes.values().filter(|note| note.categories.contains(&category_id)).collect()
+    }
+
+    pub fn import_notes(&mut self, filepath: &str) -> Result<Self, Box<dyn std::error::Error>>{
+        let mut ctg_path = PathBuf::from(filepath);
+        ctg_path.push("categories");
+        ctg_path.set_extension("json");
+
+        let mut notes_path = PathBuf::from(filepath);  
+        notes_path.push("categories");
+        notes_path.set_extension("json");
+
+        let notes_json = std::fs::read_to_string(notes_path)?;
+        let ctg_json = std::fs::read_to_string(ctg_path)?;
+
+        let imp_notes: HashMap<Uuid, Note> = serde_json::from_str(&notes_json)?;
+        let imp_categories: HashMap<Uuid, Category> = serde_json::from_str(&ctg_json)?;
+
+        let controller = NotesController {
+            notes: imp_notes.clone(),
+            categories: imp_categories.clone(),
+        };
+        
+        Ok(controller)
+    }
+
+    pub fn save(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let ctg_json = serde_json::to_string_pretty(&self.categories)?;
+        let notes_json = serde_json::to_string_pretty(&self.notes)?;
+
+        let mut ctg_path = PathBuf::from(filepath);
+        ctg_path.push("categories");
+        ctg_path.set_extension("json");
+
+        let mut notes_path = PathBuf::from(filepath);  
+        notes_path.push("categories");
+        notes_path.set_extension("json");
+
+        std::fs::write(ctg_path, ctg_json)?;
+        std::fs::write(notes_path, notes_json)?;
+        Ok(())
     }
 }

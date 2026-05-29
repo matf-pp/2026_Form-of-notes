@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDate, NaiveDateTime, Local, TimeZone, Utc, Datelike};
+use uuid::Uuid;
 
 use crate::calendar_controller::{CalendarController, UICalendarEvent, DateInfo};
 use crate::task_controller::{TaskController, Task};
@@ -30,6 +31,8 @@ impl AppState {
     pub fn import_data(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let calendar_path = format!("{}/calendar.ics", self.folder_name);
         let tasks_path = format!("{}/tasks.json", self.folder_name);
+        let notes_path = format!("{}/notes.json", self.folder_name);
+        let ctg_path = format!("{}/categories.json", self.folder_name);
         
         if std::path::Path::new(&calendar_path).exists() {
             if let Err(e) = self.calendar_controller.import_calendar(&calendar_path){
@@ -41,6 +44,11 @@ impl AppState {
                 eprintln!("Error loading: {}", e);
             }
         }
+        if std::path::Path::new(&notes_path).exists() && std::path::Path::new(&ctg_path).exists() {
+            if let Err(e) = self.notes_controller.import_notes(&format!("{}", self.folder_name)) {
+                eprintln!("Error loading: {}", e);
+            }
+        }
 
         Ok(())
     }
@@ -48,6 +56,7 @@ impl AppState {
     pub fn save_data(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.task_controller.save(&format!("{}/tasks.json", self.folder_name))?;
         self.calendar_controller.save(&format!("{}/calendar.ics", self.folder_name))?;
+        self.notes_controller.save(&format!("{}", self.folder_name))?;
         Ok(())
     }
 
@@ -157,12 +166,14 @@ impl AppState {
         self.notes_controller.create_note(title, "");
     }
 
-    pub fn edit_note_content(&mut self, id: Uuid, content: &str) -> Result<(), String> {
+    pub fn edit_note_content(&mut self, id: Uuid, content: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.notes_controller.edit_note_content(id, content)?;
+        Ok(())
     }
 
-    pub fn edit_note_title(&mut self, id: Uuid, title: &str) -> Result<(), String> {
+    pub fn edit_note_title(&mut self, id: Uuid, title: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.notes_controller.edit_note_title(id, title)?;
+        Ok(())
     }
 
     pub fn get_notes(&self) -> Vec<&Note> {
@@ -173,12 +184,14 @@ impl AppState {
         self.notes_controller.create_category(name, color);
     }
 
-    pub fn assign_category(&mut self, note_id: Uuid, category_id: Uuid) -> Result<(), String> {
+    pub fn assign_category(&mut self, note_id: Uuid, category_id: Uuid) -> Result<(), Box<dyn std::error::Error>> {
         self.notes_controller.assign_category(note_id, category_id)?;
+        Ok(())
     }
 
-    pub fn remove_category(&mut self, note_id: Uuid, category_id: Uuid) -> Result<(), String> {
+    pub fn remove_category(&mut self, note_id: Uuid, category_id: Uuid)-> Result<(), Box<dyn std::error::Error>> {
         self.notes_controller.remove_category(note_id, category_id)?;
+        Ok(())
     }
 
     pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
