@@ -119,8 +119,16 @@ impl NotesController {
         }
     }
 
-    pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
-        self.notes.values().filter(|note| note.categories.contains(&category_id)).collect()
+    pub fn has_category(&self, note_id: Uuid, category_id: Uuid) -> bool {
+        if let Some(note) = self.notes.get(&note_id) {
+            return note.categories.contains(&category_id);
+        } else {
+            return false;
+        }
+    }
+
+    pub fn filter_by_category(&self, category_id: Uuid) -> Vec<Note> {
+        self.notes.values().cloned().filter(|note| note.categories.contains(&category_id)).collect()
     }
 
     pub fn get_categories(&self) -> Vec<Category> {

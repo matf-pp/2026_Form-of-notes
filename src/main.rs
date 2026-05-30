@@ -367,6 +367,70 @@ fn main() -> Result<(), slint::PlatformError> {
         }
     });
 
+    let s_slc_ctg = state.clone();
+    let ui_slcc_weak = ui.as_weak();
+    ui.on_select_category(move |id| {
+        let s = s_slc_ctg.lock().unwrap();
+        
+        if let Some(ui) = ui_slcc_weak.upgrade(){
+            if id == "all" {
+                ui.set_notes(to_slint_notes(&s.get_notes()));
+            }
+            if id != "all" {
+                let uid: Uuid = Uuid::parse_str(id.as_str()).unwrap();
+                ui.set_notes(to_slint_notes(&s.filter_by_category(uid)));
+            }
+        }
+    });
+
+    let s_asg_ctg = state.clone();
+    let ui_asgc_weak = ui.as_weak();
+    ui.on_add_note_category(move |note_id, ctg_id| {
+        let mut s = s_asg_ctg.lock().unwrap();
+        
+        let note_uid: Uuid = Uuid::parse_str(note_id.as_str()).unwrap();
+        let ctg_uid: Uuid = Uuid::parse_str(ctg_id.as_str()).unwrap();
+
+        let _ = s.assign_category(note_uid, ctg_uid);
+
+        if let Some(ui) = ui_asgc_weak.upgrade(){
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+
+            let current_selected = ui.get_selected_note_id();
+            ui.set_selected_note_id(slint::SharedString::from(""));
+            ui.set_selected_note_id(current_selected);
+        }
+    });
+
+    let s_rmv_ctg = state.clone();
+    let ui_rmvc_weak = ui.as_weak();
+    ui.on_remove_note_category(move |note_id, ctg_id| {
+        let mut s = s_rmv_ctg.lock().unwrap();
+        
+        let note_uid: Uuid = Uuid::parse_str(note_id.as_str()).unwrap();
+        let ctg_uid: Uuid = Uuid::parse_str(ctg_id.as_str()).unwrap();
+
+        let _ = s.remove_category(note_uid, ctg_uid);
+
+        if let Some(ui) = ui_rmvc_weak.upgrade(){
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+
+            let current_selected = ui.get_selected_note_id();
+            ui.set_selected_note_id(slint::SharedString::from(""));
+            ui.set_selected_note_id(current_selected);
+        }
+    });
+
+    let s_has_ctg = state.clone();
+    ui.on_has_category(move |note_id, ctg_id| {
+        let s = s_has_ctg.lock().unwrap();
+        
+        let note_uid: Uuid = Uuid::parse_str(note_id.as_str()).unwrap();
+        let ctg_uid: Uuid = Uuid::parse_str(ctg_id.as_str()).unwrap();
+
+        s.has_category(note_uid, ctg_uid)
+    });
+
 //Some initialising things
     
     let current_date = Local::now().date_naive();

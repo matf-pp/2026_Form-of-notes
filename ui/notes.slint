@@ -58,7 +58,7 @@ component NoteListItem {
 component CategoryTag {
     in property <string> name;
     in property <string> color;
-    in property <bool> active;
+    in property <bool> active: false;
     callback clicked;
 
     touch := TouchArea { clicked => { root.clicked(); } }
@@ -72,8 +72,8 @@ component CategoryTag {
 
         Text {
             text: root.name;
-            font-size: 13px;
-            color: root.active ? white : (AppPalette.is-dark ? #dddddd : #333333);
+            font-size: 16px;
+            color: white;
             padding: 12px;
         }
     }
@@ -86,12 +86,15 @@ export component NotesView inherits HorizontalLayout {
     callback select-note(string);
     callback change-note-title(string, string);
     callback change-note-content(string, string);
+    callback add-note-category(string, string);
+    callback remove-note-category(string, string);
+    pure callback has-category(string, string) -> bool;
     //callback save-note();
     callback delete-note(string);
 
     in-out property <[SlintCategory]> categories: [];
     in-out property <[SlintNote]> notes: [];
-    in property <string> active-category-id: "all";
+    in-out property <string> active-category-id: "all";
     in-out property <string> selected-note-id: "-1";
     
     in-out property <string> editing-title: "";
@@ -198,13 +201,19 @@ export component NotesView inherits HorizontalLayout {
                         CategoryTag {
                             name: "All Notes";
                             active: root.active-category-id == "all";
-                            clicked => { root.select-category("all"); }
+                            clicked => {
+                                root.active-category-id = "all";
+                                root.select-category("all"); 
+                            }
                         }
                         for cat in root.categories : CategoryTag {
                             name: cat.name;
                             color: cat.color;
                             active: cat.id == root.active-category-id;
-                            clicked => { root.select-category(cat.id); }
+                            clicked => {
+                                root.active-category-id = cat.id;
+                                root.select-category(cat.id); 
+                            }
                         }
                     }
                 }
@@ -239,18 +248,43 @@ export component NotesView inherits HorizontalLayout {
         if root.selected-note-id != "-1" : VerticalLayout {
             padding: 20px;
             spacing: 15px;
+            
+            HorizontalLayout {
+                spacing: 10px;
+                LineEdit {
+                    text <=> root.editing-title;
+                    placeholder-text: "Enter Note Title...";
+                    font-size: 22px;
+                    height: 40px;
+                    edited(text) => { 
+                        root.editing-title = text;
+                        root.change-note-title(root.selected-note-id, text); 
+                    }
+                }
 
-            LineEdit {
-                text <=> root.editing-title;
-                placeholder-text: "Enter Note Title...";
-                font-size: 22px;
-                height: 40px;
-                edited(text) => { 
-                    root.editing-title = text;
-                    root.change-note-title(root.selected-note-id, text); 
+                ScrollView {
+                    height: 70px;
+
+                    HorizontalLayout {
+                        width: self.preferred-width; 
+                        spacing: 6px;
+
+                        for cat in root.categories : CategoryTag {
+                            name: cat.name;
+                            color: cat.color;
+                            active: root.has-category(root.selected-note-id, cat.id);
+                            clicked => { 
+                                if self.active {
+                                    root.remove-note-category(root.selected-note-id, cat.id);
+                                } else {
+                                    root.add-note-category(root.selected-note-id, cat.id);
+                                }
+                                //self.active = !self.active;
+                            }
+                        }
+                    }
                 }
             }
-
             Rectangle { height: 1px; background: AppPalette.secondary-color; }
 
             TextEdit {

@@ -46,6 +46,9 @@ export component AppWindow inherits Window{
     callback change-note-content <=> notes-view.change-note-content;
     //callback save-note <=> notes-view.save-note;
     callback delete-note <=> notes-view.delete-note;
+    callback add-note-category <=> notes-view.add-note-category;
+    callback remove-note-category <=> notes-view.remove-note-category;
+    pure callback has-category <=> notes-view.has-category;
 
     in-out property <[SlintCategory]> categories <=> notes-view.categories;
     in-out property <[SlintNote]> notes <=> notes-view.notes;

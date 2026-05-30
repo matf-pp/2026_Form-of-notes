@@ -204,8 +204,11 @@ impl AppState {
         self.notes_controller.remove_category(note_id, category_id)?;
         Ok(())
     }
+    pub fn has_category(&self, note_id: Uuid, category_id: Uuid) -> bool {
+        self.notes_controller.has_category(note_id, category_id)
+    }
 
-    pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
+    pub fn filter_by_category(&self, category_id: Uuid) -> Vec<Note> {
         self.notes_controller.filter_by_category(category_id)
     }
 
