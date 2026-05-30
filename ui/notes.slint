@@ -17,6 +17,7 @@ export struct SlintNote {
 }
 
 component NoteListItem {
+    in property <string> note_id;
     in property <string> title;
     in property <[string]> category-ids;
     in property <bool> selected;
@@ -82,14 +83,16 @@ export component NotesView inherits HorizontalLayout {
     callback new-note();
     callback add-category(string);
     callback select-category(string);
-    callback select-note(int);
-    callback change-note-title(string);
-    callback change-note-content(string);
+    callback select-note(string);
+    callback change-note-title(string, string);
+    callback change-note-content(string, string);
+    //callback save-note();
+    callback delete-note(string);
 
-    in property <[SlintCategory]> categories: [];
-    in property <[SlintNote]> notes: [];
+    in-out property <[SlintCategory]> categories: [];
+    in-out property <[SlintNote]> notes: [];
     in property <string> active-category-id: "all";
-    in property <int> selected-note-index: -1;
+    in-out property <string> selected-note-id: "-1";
     
     in-out property <string> editing-title: "";
     in-out property <string> editing-content: "";
@@ -160,10 +163,16 @@ export component NotesView inherits HorizontalLayout {
             
             ListView {
                 for note[index] in root.notes : NoteListItem {
+                    note_id: note.id;
                     title: note.title;
                     category-ids: note.category-ids;
-                    selected: index == root.selected-note-index;
-                    clicked => { root.select-note(index); }
+                    selected: note.id == root.selected-note-id;
+                    clicked => {
+                        root.selected-note-id = "-1";
+                        //root.editing_title = note.title;
+                        //root.editing_content = note.content;
+                        root.select-note(note.id); 
+                    }
                 }
             }
         }
@@ -172,7 +181,7 @@ export component NotesView inherits HorizontalLayout {
     Rectangle {
         horizontal-stretch: 1;
 
-        if root.selected-note-index != -1 : VerticalLayout {
+        if root.selected-note-id != "-1" : VerticalLayout {
             padding: 20px;
             spacing: 15px;
 
@@ -181,7 +190,7 @@ export component NotesView inherits HorizontalLayout {
                 placeholder-text: "Enter Note Title...";
                 font-size: 22px;
                 height: 40px;
-                edited(text) => { root.change-note-title(text); }
+                edited(text) => { root.change-note-title(root.selected-note-id, text); }
             }
 
             Rectangle { height: 1px; background: AppPalette.secondary-color; }
@@ -189,11 +198,31 @@ export component NotesView inherits HorizontalLayout {
             TextEdit {
                 text: root.editing-content;
                 font-size: 16px;
-                edited(text) => { root.change-note-content(text); }
+                edited(text) => { root.change-note-content(root.selected-note-id, text); }
+            }
+
+            HorizontalLayout {
+                spacing: 12px;
+                height: 35px;
+                alignment: end; // Keeps them pushed to the right side, remove if you want them stretched
+
+                /*MyButton {
+                    text: "Save Note";
+                    width: 120px;
+                    clicked => { root.save-note(); }
+                }*/
+
+                MyButton {
+                    text: "Delete Note";
+                    width: 150px;
+                    clicked => { 
+                        root.delete-note(root.selected-note-id);
+                    }
+                }
             }
         }
 
-        if root.selected-note-index == -1 : VerticalLayout {
+        if root.selected-note-id == "-1" : VerticalLayout {
             alignment: center;
             Text {
                 text: "Select a note to view or edit details.";

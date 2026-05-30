@@ -2,7 +2,7 @@ import { AppPalette }                    from "palette.slint";
 import { MyButton, FoNLogo, MyText }                      from "commons.slint";
 import { SlintTask, TaskView }           from "tasks.slint";
 import { SlintCalendarEvent, CalendarView, DateInfo } from "calendar.slint";
-import {NotesView} from "notes.slint";
+import { SlintNote, SlintCategory, NotesView } from "notes.slint";
 
 export component AppWindow inherits Window{
     title: "Form of Notes";
@@ -37,6 +37,23 @@ export component AppWindow inherits Window{
     in-out property <int> calendar-year <=> calendar-view.year;
     in-out property <string> calendar-month-name <=> calendar-view.month_name;
 
+    //Notes
+    callback new-note <=> notes-view.new-note;
+    callback add-category <=> notes-view.add-category;
+    callback select-category <=> notes-view.select-category;
+    callback select-note <=> notes-view.select-note;
+    callback change-note-title <=> notes-view.change-note-title;
+    callback change-note-content <=> notes-view.change-note-content;
+    //callback save-note <=> notes-view.save-note;
+    callback delete-note <=> notes-view.delete-note;
+
+    in-out property <[SlintCategory]> categories <=> notes-view.categories;
+    in-out property <[SlintNote]> notes <=> notes-view.notes;
+
+    in-out property <string> selected-note-id <=> notes-view.selected-note-id;
+
+    in-out property <string> editing-title <=> notes-view.editing-title;
+    in-out property <string> editing-content <=> notes-view.editing-content;
 
     background: AppPalette.bg-color;
     default-font-family: "Arial";

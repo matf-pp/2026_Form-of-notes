@@ -179,8 +179,16 @@ impl AppState {
         Ok(())
     }
 
-    pub fn get_notes(&self) -> Vec<&Note> {
+    pub fn get_note(&self, id: Uuid) -> Option<&Note> {
+        self.notes_controller.get_note(id)
+    }
+
+    pub fn get_notes(&self) -> Vec<Note> {
         self.notes_controller.get_notes()
+    }
+
+    pub fn delete_note(&mut self, id: Uuid) -> Result<Note, String> {
+        self.notes_controller.delete_note(id)
     }
 
     pub fn create_category(&mut self, name: &str, color: Option<&str>) {
@@ -199,5 +207,9 @@ impl AppState {
 
     pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
         self.notes_controller.filter_by_category(category_id)
+    }
+
+    pub fn get_categories(&self) -> Vec<Category> {
+        self.notes_controller.get_categories()
     }
 }

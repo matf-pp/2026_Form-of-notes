@@ -69,10 +69,18 @@ impl NotesController {
         self.notes.get(&id)
     }
 
-    pub fn get_notes(&self) -> Vec<&Note> {
-        let mut notes_list: Vec<&Note> = self.notes.values().collect();
+    pub fn get_notes(&self) -> Vec<Note> {
+        let mut notes_list: Vec<Note> = self.notes.values().cloned().collect();
         notes_list.sort_by(|a, b| b.last_update.cmp(&a.last_update));
         notes_list
+    }
+
+    pub fn delete_note(&mut self, id: Uuid) -> Result<Note, String> {
+        if let Some(removed_note) = self.notes.remove(&id) {
+            Ok(removed_note)
+        } else {
+            Err("Note not found".to_string())
+        }
     }
     
     pub fn create_category(&mut self, name: &str, color: Option<&str>) -> Category {
@@ -113,6 +121,12 @@ impl NotesController {
 
     pub fn filter_by_category(&self, category_id: Uuid) -> Vec<&Note> {
         self.notes.values().filter(|note| note.categories.contains(&category_id)).collect()
+    }
+
+    pub fn get_categories(&self) -> Vec<Category> {
+        let mut ctg_list: Vec<Category> = self.categories.values().cloned().collect();
+        ctg_list.sort_by(|a, b| a.name.cmp(&b.name));
+        ctg_list
     }
 
     pub fn import_notes(&mut self, filepath: &str) -> Result<Self, Box<dyn std::error::Error>>{

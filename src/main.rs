@@ -8,6 +8,7 @@ mod notes_controller;
 use app_state::AppState;
 use chrono::{Datelike, Local, NaiveDate};
 use slint::{ModelRc, SharedString, VecModel};
+use uuid::Uuid;
 use std::sync::{Arc, Mutex};
 
 fn to_slint_events(events: &[calendar_controller::UICalendarEvent]) -> ModelRc<SlintCalendarEvent> {
@@ -65,6 +66,41 @@ fn to_slint_tasks(tasks: &[task_controller::Task]) -> ModelRc<SlintTask> {
             total_mins: t.total_time_mins as i32,
             total_days: t.total_time_days as i32,
             deadline: t.deadline.clone().unwrap_or_default().into(),
+        })
+        .collect();
+    ModelRc::new(VecModel::from(v))
+}
+
+fn to_slint_notes(notes: &[notes_controller::Note]) -> ModelRc<SlintNote> {
+    let v: Vec<SlintNote> = notes
+        .iter()
+        .map(|n| {
+            
+            let cat_ids: Vec<SharedString> = n.categories
+                .clone()
+                .into_iter()
+                .map(|id| SharedString::from(id.to_string()))
+                .collect();
+
+            SlintNote {
+                id: n.id.to_string().into(),
+                title: n.title.clone().into(),
+                content: n.content.clone().into(),
+                category_ids: ModelRc::new(VecModel::from(cat_ids)),
+                last_update: n.last_update.to_string().into(),
+            }
+        })
+        .collect();
+    ModelRc::new(VecModel::from(v))
+}
+
+fn to_slint_categories(categories: &[notes_controller::Category]) -> ModelRc<SlintCategory> {
+    let v: Vec<SlintCategory> = categories
+        .iter()
+        .map(|c| SlintCategory {
+            id: c.id.to_string().into(),
+            name: c.name.to_string().into(),
+            color: c.color.clone().unwrap_or_default().into(),
         })
         .collect();
     ModelRc::new(VecModel::from(v))
@@ -239,6 +275,98 @@ fn main() -> Result<(), slint::PlatformError> {
         }
     });
 
+//-------NOTES-------
+    let s_new_note = state.clone();
+    let ui_newn_weak = ui.as_weak();
+    ui.on_new_note(move || {
+        let mut s = s_new_note.lock().unwrap();
+        s.create_note("New note");
+
+        let _ = s.save_data();
+        if let Some(ui) = ui_newn_weak.upgrade(){
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+        }
+    });
+
+    let s_new_ctg = state.clone();
+    let ui_newc_weak = ui.as_weak();
+    ui.on_add_category(move |ctg_title| {
+        let mut s = s_new_ctg.lock().unwrap();
+        s.create_category(
+            ctg_title.as_str(),
+            Some("ff0000")
+        );
+
+        let _ = s.save_data();
+        if let Some(ui) = ui_newc_weak.upgrade(){
+            ui.set_categories(to_slint_categories(&s.get_categories()));
+        }
+    });
+
+    let s_chg_nc = state.clone();
+    let ui_chgc_weak = ui.as_weak();
+    ui.on_change_note_content(move |id, content| {
+        let mut s = s_chg_nc.lock().unwrap();
+        
+        let _ = s.edit_note_content(Uuid::parse_str(id.as_str()).unwrap(), content.as_str());
+
+        let _ = s.save_data();
+        if let Some(ui) = ui_chgc_weak.upgrade(){
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+        }
+    });
+
+    let s_chg_nt = state.clone();
+    let ui_chgt_weak = ui.as_weak();
+    ui.on_change_note_title(move |id, title| {
+        let mut s = s_chg_nt.lock().unwrap();
+        
+        let _ = s.edit_note_title(Uuid::parse_str(id.as_str()).unwrap(), title.as_str());
+
+        let _ = s.save_data();
+        if let Some(ui) = ui_chgt_weak.upgrade(){
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+        }
+    });
+
+    let s_slc_note = state.clone();
+    let ui_slcn_weak = ui.as_weak();
+    ui.on_select_note(move |id| {
+        let mut s = s_slc_note.lock().unwrap();
+        let _ = s.save_data();
+
+        let mut new_title = "-1".to_string();
+        let mut new_content = "-1".to_string();
+        let mut new_id = "-1".to_string();
+
+        let uid: Uuid = Uuid::parse_str(id.as_str()).unwrap();
+        if let Some(note) = s.get_note(uid) {
+            new_title = note.title.clone();
+            new_content = note.content.clone();
+            new_id = id.to_string();
+        }
+        if let Some(ui) = ui_slcn_weak.upgrade(){
+            ui.set_selected_note_id(SharedString::from("-1"));
+            ui.set_selected_note_id(new_id.into());
+            ui.set_editing_title(new_title.into());
+            ui.set_editing_content(new_content.into());
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+        }
+    });
+
+    let s_del_note = state.clone();
+    let ui_deln_weak = ui.as_weak();
+    ui.on_delete_note(move |id| {
+        let mut s = s_del_note.lock().unwrap();
+        
+        let _ = s.delete_note(Uuid::parse_str(id.as_str()).unwrap());
+
+        let _ = s.save_data();
+        if let Some(ui) = ui_deln_weak.upgrade(){
+            ui.set_selected_note_id(SharedString::from("-1"));
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+        }
+    });
 
 //Some initialising things
     
