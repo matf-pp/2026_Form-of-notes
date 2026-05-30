@@ -42,10 +42,12 @@ export component CalendarView inherits HorizontalLayout{
 
     //We make the left handside thing
     VerticalLayout {
-        padding-top: -50px;
+        width:  500px;
+        spacing: 10px;
+        padding-top: -20px;
         padding-left: 10px;
-        width: 500px;
         if is-adding-event == false && is-editing-event == false : ListView {
+            vertical-stretch: 1;
             in-out property <int> previous-day: 0;
             for data[index] in events : VerticalLayout {
                 width: parent.width;
@@ -374,12 +376,16 @@ export component CalendarView inherits HorizontalLayout{
                 }
             }
         }
+        if is-adding-event == false && is-editing-event == false : Rectangle {
+            vertical-stretch: 1;
+        }
     }
-    Rectangle{
-        horizontal-stretch: 1;
-    }
+    // the right side thing
     VerticalLayout {
-        padding-top: -50px;
+        padding-top: -20px;
+        horizontal-stretch: 1;
+        spacing: 15px;
+        alignment: start;
         HorizontalLayout{
             alignment: center;
             spacing: 10px;

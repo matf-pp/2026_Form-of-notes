@@ -291,7 +291,7 @@ export component TaskView inherits VerticalLayout {
                     in-out property <int> days-passed: item.total-days;
                     in-out property <int> hrs-passed: item.total-hours;
                     in-out property <int> mins-passed: item.total-mins;
-                    text: tim.running ? (tim.hr < 10 ? "0" : "") + tim.hr + ":" + (tim.hr < 10 ? "0" : "") + tim.min :
+                    text: tim.running ? (tim.hr < 10 ? "0" : "") + tim.hr + ":" + (tim.min < 10 ? "0" : "") + tim.min :
                         (days-passed < 10 ? "0" : "") + days-passed  + ":" + 
                         (hrs-passed < 10 ? "0" : "") + hrs-passed + ":" + 
                         (mins-passed < 10 ? "0" : "") + mins-passed;
