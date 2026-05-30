@@ -168,9 +168,6 @@ export component NotesView inherits HorizontalLayout {
                     category-ids: note.category-ids;
                     selected: note.id == root.selected-note-id;
                     clicked => {
-                        root.selected-note-id = "-1";
-                        //root.editing_title = note.title;
-                        //root.editing_content = note.content;
                         root.select-note(note.id); 
                     }
                 }
@@ -186,25 +183,31 @@ export component NotesView inherits HorizontalLayout {
             spacing: 15px;
 
             LineEdit {
-                text: root.editing-title;
+                text <=> root.editing-title;
                 placeholder-text: "Enter Note Title...";
                 font-size: 22px;
                 height: 40px;
-                edited(text) => { root.change-note-title(root.selected-note-id, text); }
+                edited(text) => { 
+                    root.editing-title = text;
+                    root.change-note-title(root.selected-note-id, text); 
+                }
             }
 
             Rectangle { height: 1px; background: AppPalette.secondary-color; }
 
             TextEdit {
-                text: root.editing-content;
+                text <=> root.editing-content;
                 font-size: 16px;
-                edited(text) => { root.change-note-content(root.selected-note-id, text); }
+                edited(text) => {
+                    root.editing-content = text;
+                    root.change-note-content(root.selected-note-id, text); 
+                }
             }
 
             HorizontalLayout {
                 spacing: 12px;
                 height: 35px;
-                alignment: end; // Keeps them pushed to the right side, remove if you want them stretched
+                alignment: end;
 
                 /*MyButton {
                     text: "Save Note";
@@ -225,7 +228,7 @@ export component NotesView inherits HorizontalLayout {
         if root.selected-note-id == "-1" : VerticalLayout {
             alignment: center;
             Text {
-                text: "Select a note to view or edit details.";
+                text: "Select a note to view or edit content.";
                 horizontal-alignment: center;
                 font-size: 16px;
                 color: AppPalette.is-dark ? #777777 : #999999;

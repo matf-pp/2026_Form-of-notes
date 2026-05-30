@@ -332,7 +332,7 @@ fn main() -> Result<(), slint::PlatformError> {
     let s_slc_note = state.clone();
     let ui_slcn_weak = ui.as_weak();
     ui.on_select_note(move |id| {
-        let mut s = s_slc_note.lock().unwrap();
+        let s = s_slc_note.lock().unwrap();
         let _ = s.save_data();
 
         let mut new_title = "-1".to_string();
@@ -346,7 +346,6 @@ fn main() -> Result<(), slint::PlatformError> {
             new_id = id.to_string();
         }
         if let Some(ui) = ui_slcn_weak.upgrade(){
-            ui.set_selected_note_id(SharedString::from("-1"));
             ui.set_selected_note_id(new_id.into());
             ui.set_editing_title(new_title.into());
             ui.set_editing_content(new_content.into());
