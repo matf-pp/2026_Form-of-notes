@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use std::fs::{read_to_string, File};
 use std::io::Write;
 use chrono::{Datelike, DateTime, Local, NaiveDate, NaiveDateTime, TimeZone, Timelike};
-use icalendar::{Calendar, CalendarComponent, Component, Event, Property, EventLike, DatePerhapsTime};
+use icalendar::{Calendar, CalendarComponent, Component, Event, Property, EventLike};
 
 
 #[derive(Debug, Clone)]

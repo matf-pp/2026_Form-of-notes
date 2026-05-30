@@ -143,7 +143,7 @@ impl NotesController {
         ctg_path.set_extension("json");
 
         let mut notes_path = PathBuf::from(filepath);  
-        notes_path.push("categories");
+        notes_path.push("notes");
         notes_path.set_extension("json");
 
         let notes_json = std::fs::read_to_string(notes_path)?;
@@ -169,7 +169,7 @@ impl NotesController {
         ctg_path.set_extension("json");
 
         let mut notes_path = PathBuf::from(filepath);  
-        notes_path.push("categories");
+        notes_path.push("notes");
         notes_path.set_extension("json");
 
         std::fs::write(ctg_path, ctg_json)?;

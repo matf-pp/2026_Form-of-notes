@@ -71,7 +71,7 @@ export component CalendarView inherits HorizontalLayout{
                         width: 1px;
                     }
                     get-old-title := MyText {
-                        padding-left: 15px;
+                        //padding-left: 15px;
                         vertical-alignment: center;
                         text: data.title;
                         width: 100px;
@@ -81,7 +81,7 @@ export component CalendarView inherits HorizontalLayout{
                         MyText{text: data.end_time;}
                     }
                     Rectangle{
-                        padding-right: 10px;
+                        //padding-right: 10px;
                         in-out property <string> uid <=> parent.uid;
                         background: AppPalette.secondary-color;
                         MyText {text: "Edit event";}

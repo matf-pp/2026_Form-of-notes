@@ -1,5 +1,4 @@
-use serde::{Serialize, Deserialize};
-use chrono::{NaiveDate, NaiveDateTime, Local, TimeZone, Utc, Datelike};
+use chrono::{Local, Datelike};
 use uuid::Uuid;
 
 use crate::calendar_controller::{CalendarController, UICalendarEvent, DateInfo};
@@ -153,7 +152,7 @@ impl AppState {
         self.calendar_controller.get_calendar_data(month, year)
     }
 
-    pub fn make_date(&self, year: u32, month: u8, day: u8, hour: u8, mins: u8) -> String {
+    /*pub fn make_date(&self, year: u32, month: u8, day: u8, hour: u8, mins: u8) -> String {
         let local_dt = NaiveDate::from_ymd_opt(year as i32, month as u32, day as u32)
             .and_then(|d| d.and_hms_opt(hour as u32, mins as u32, 0))
             .expect("Invalid date or time provided");
@@ -163,7 +162,7 @@ impl AppState {
             .unwrap_or_else(|| local_dt.and_local_timezone(Local).unwrap());
 
         utc_dt.with_timezone(&chrono::Utc).format("%Y%m%dT%H%M%SZ").to_string()
-    }
+    }*/
 
     pub fn create_note(&mut self, title: &str) {
         self.notes_controller.create_note(title, "");
