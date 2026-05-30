@@ -119,8 +119,64 @@ export component NotesView inherits HorizontalLayout {
                 
                 MyButton {
                     width: 230px;
-                    text: "Add Category";
-                    clicked => { root.add-category("New Category"); }
+                    text: form-area.visible ? "Cancel" : "Add Category";
+                    clicked => {
+                        form-area.visible = !form-area.visible;
+                        form-area.new-name = "";  
+                    }
+                }
+            }
+            
+            form-area := Rectangle {
+                visible: false;
+                height: self.visible ? 150px : 0px;
+                animate height { duration: 150ms; easing: ease-in-out; }
+                clip: true;
+                background: AppPalette.bg-color.darker(10%);
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: AppPalette.primary-color;
+
+                in-out property <string> new-name: "";
+
+                VerticalLayout {
+                    padding: 12px;
+                    spacing: 10px;
+
+                    HorizontalLayout {
+                        spacing: 8px;
+                        MyText {
+                            text: "Category Name:";
+                            color: AppPalette.text-color;
+                            width: 170px;
+                            vertical-alignment: center;
+                        }
+                        LineEdit {
+                            placeholder-text: "New Category";
+                            width: 200px;
+                            height: 50px;
+                            text <=> form-area.new-name;
+                            edited(val) => { form-area.new-name = val; }
+                        }
+                    }
+
+                    HorizontalLayout {
+                        alignment: end;
+                        MyButton {
+                            text: "Add";
+                            button-color: form-area.new-name == "" ?
+                                AppPalette.primary-color.darker(40%) :
+                                AppPalette.primary-color;
+                            clicked => {
+                                if form-area.new-name != "" {
+                                    root.add-category(form-area.new-name);
+                                    
+                                    form-area.new-name = "";
+                                    form-area.visible = false;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -133,10 +189,12 @@ export component NotesView inherits HorizontalLayout {
             
             HorizontalLayout {
                 ScrollView {
-                    viewport-width: 450px;
-                    height: 50px;
+                    height: 70px;
+
                     HorizontalLayout {
+                        width: self.preferred-width; 
                         spacing: 6px;
+            
                         CategoryTag {
                             name: "All Notes";
                             active: root.active-category-id == "all";
