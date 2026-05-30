@@ -87,7 +87,7 @@ impl TaskController{
                 let status_a = a.status == 2;
                 let status_b = b.status == 2;
                 status_a.cmp(&status_b)
-                    .then(a.priority.cmp(&b.priority))
+                    .then(b.priority.cmp(&a.priority))
             });
         }else if sortby == 3 {
             self.tasks.sort_by(|a, b| {
