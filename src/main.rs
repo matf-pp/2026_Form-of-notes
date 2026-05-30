@@ -175,6 +175,8 @@ fn main() -> Result<(), slint::PlatformError> {
             bh as u8, bm as u8, eh as u8, em as u8,
         );
 
+        let _ = s.save_data();
+
         if let Some(ui) = ui_add_weak.upgrade() {
             let cur_month = ui.get_calendar_month();
             let cur_year = ui.get_calendar_year();
@@ -221,11 +223,12 @@ fn main() -> Result<(), slint::PlatformError> {
             opt_day,
             opt_month,
             opt_year,
-            Some(bh as u8),
-            Some(bm as u8),
-            Some(eh as u8),
-            Some(em as u8),
+            opt_bh,
+            opt_bm,
+            opt_eh,
+            opt_em,
         );
+        let _ = s.save_data();
 
         if let Some(ui) = ui_chg_weak.upgrade() {
             let cur_month = ui.get_calendar_month();

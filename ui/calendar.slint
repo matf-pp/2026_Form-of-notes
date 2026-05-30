@@ -23,6 +23,7 @@ export component CalendarView inherits HorizontalLayout{
     in-out property <[DateInfo]> days: []; //same as above
     in-out property <int> month; //same as above
     in-out property <int> year; //same as above
+    in-out property <int> day;
     in-out property <int> days-in-month; //same as above
     in-out property <string> month_name; //same as above
     in-out property <bool> is-editing-event: false;
@@ -79,7 +80,7 @@ export component CalendarView inherits HorizontalLayout{
                     }
                     Rectangle{
                         padding-right: 10px;
-                        in-out property <string> uid : parent.uid;
+                        in-out property <string> uid <=> parent.uid;
                         background: AppPalette.secondary-color;
                         MyText {text: "Edit event";}
                         width: 100px;
@@ -163,7 +164,7 @@ export component CalendarView inherits HorizontalLayout{
                 MyText {text: "Starts:";vertical-alignment: center;}
                 beg-input := HorizontalLayout {
                     in-out property <int> hours: beg-hour.text.to-float();
-                    in-out property <int> mins: beg-hour.text.to-float();
+                    in-out property <int> mins: beg-min.text.to-float();
                     in-out property <bool> is-valid:
                     hours >= 0 && hours < 24 
                     && mins >= 0 && mins < 60;
@@ -204,16 +205,16 @@ export component CalendarView inherits HorizontalLayout{
                 }
             } 
             addSubmit := Rectangle {
-                MyText {text: beg-input.is-valid && end-input.is-valid && addEventMain.is-valid-date ?
+                MyText {text: beg-input.is_valid && end-input.is_valid && addEventMain.is_valid_date ?
                     "Submit" : "Incorrect format";}
-                background: beg-input.is-valid && end-input.is-valid && addEventMain.is-valid-date ? 
+                background: beg-input.is_valid && end-input.is_valid && addEventMain.is_valid_date ? 
                 AppPalette.secondary-color : #c82323;
                 border-radius: 5px;
                 width: 100px;
                 height: 30px;
                 TouchArea {
                     clicked => {
-                        if(beg-input.is-valid && end-input.is-valid && addEventMain.is-valid-date){
+                        if(beg-input.is_valid && end-input.is_valid && addEventMain.is_valid_date){
                             add_event(title-input.text, day-input.text.to-float(), month-input.text.to-float(), year-input.text.to-float(),
                                 beg-hour.text.to-float(), beg-min.text.to-float(), end-hour.text.to-float(), end-min.text.to-float());
                             is-adding-event = false;
@@ -236,12 +237,12 @@ export component CalendarView inherits HorizontalLayout{
         }
         if is-editing-event : editEvent := VerticalLayout {
             spacing: 10px;
-            in-out property <string> uid: "";
+            in-out property <string> uid <=> selected-uid;
 //--------------Title
             HorizontalLayout {
                 MyText {text: "Event title:"; vertical-alignment: center;}
                 title-input2 := LineEdit {
-                    placeholder-text: "My event"; 
+                    placeholder-text: selected-title; 
                     width: 250px;
                     height: 30px;
                 }
@@ -289,7 +290,7 @@ export component CalendarView inherits HorizontalLayout{
                 MyText {text: "Starts:";vertical-alignment: center;}
                 beg-input2 := HorizontalLayout {
                     in-out property <int> hours: beg-hour2.text.to-float();
-                    in-out property <int> mins: beg-hour2.text.to-float();
+                    in-out property <int> mins: beg-min2.text.to-float();
                     in-out property <bool> is-valid:
                     hours >= 0 && hours < 24 
                     && mins >= 0 && mins < 60;
@@ -310,8 +311,8 @@ export component CalendarView inherits HorizontalLayout{
             HorizontalLayout {
                 MyText {text: "Ends:";vertical-alignment: center;}
                 end-input2 := HorizontalLayout {
-                    in-out property <int> hours: beg-hour2.text.to-float();
-                    in-out property <int> mins: beg-hour2.text.to-float();
+                    in-out property <int> hours: end-hour2.text.to-float();
+                    in-out property <int> mins: end-min2.text.to-float();
                     in-out property <bool> is-valid:
                     hours >= 0 && hours < 24 
                     && mins >= 0 && mins < 60;
@@ -330,16 +331,16 @@ export component CalendarView inherits HorizontalLayout{
                 }
             } 
             addSubmit2 := Rectangle {
-                MyText {text: beg-input2.is-valid && end-input2.is-valid && addEventMain2.is-valid-date ?
+                MyText {text: beg-input2.is_valid && end-input2.is_valid && addEventMain2.is_valid_date ?
                     "Submit" : "Incorrect format";}
-                background: beg-input2.is-valid && end-input2.is-valid && addEventMain2.is-valid-date ? 
+                background: beg-input2.is_valid && end-input2.is_valid && addEventMain2.is_valid_date ? 
                 AppPalette.secondary-color : #c82323;
                 border-radius: 5px;
                 width: 100px;
                 height: 30px;
                 TouchArea {
                     clicked => {
-                        if(beg-input2.is-valid && end-input2.is-valid && addEventMain2.is-valid-date){
+                        if(beg-input2.is_valid && end-input2.is_valid && addEventMain2.is_valid_date){
                             if(beg-hour2.text.character-count == 0 || beg-min2.text.character-count == 0){
                                 if(end-hour2.text.character-count == 0 || end-min2.text.character-count == 0){
                                     change_event(editEvent.uid, title-input2.text, day-input2.text.to-float(), month-input2.text.to-float(), year-input2.text.to-float(),
@@ -393,7 +394,11 @@ export component CalendarView inherits HorizontalLayout{
                 background: AppPalette.primary-color;
                 TouchArea {
                     clicked => {
-                        get_events(month - 1, year);
+                        if(month == 1){
+                            get_events(12, year - 1);
+                        }else{
+                            get_events(month - 1, year);
+                        }
                     }
                 }
             }
@@ -413,7 +418,11 @@ export component CalendarView inherits HorizontalLayout{
                 background: AppPalette.primary-color;
                 TouchArea {
                     clicked => {
-                        get_events(month+1, year)
+                        if(month == 12){
+                            get_events(1, year+1);
+                        }else{
+                            get_events(month+1, year);
+                        }
                     }
                 }
             }
@@ -482,7 +491,6 @@ export component CalendarView inherits HorizontalLayout{
                     clicked => {
                         is-adding-event = true;
                         is-editing-event = false;
-                        //postaviti datum na izabrani
                     }
                 }
             }

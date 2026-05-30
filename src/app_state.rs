@@ -107,20 +107,23 @@ impl AppState {
     pub fn change_event(&mut self, uid: &str, new_title: Option<String>, new_day: Option<u8>, new_month: Option<u8>, new_year: Option<u32>, 
         new_begin_hour: Option<u8>, new_begin_mins: Option<u8>, new_end_hour: Option<u8>, new_end_mins: Option<u8>) -> bool {
         
-        let title = match new_title{Some(t) => t, None => return false };
+        let title = new_title.filter(|t| !t.is_empty());
         
-        
-        let new_begin = if let (Some(y), Some(m), Some(d), Some(bh), Some(bm)) = 
-            (new_year, new_month, new_day, new_begin_hour, new_begin_mins) {
-                Some(format!("{:04}{:02}{:02}T{:02}{:02}00", y, m, d, bh, bm))
+        let new_date = if let (Some(y), Some(m), Some(d)) = 
+            (new_year, new_month, new_day) {
+                Some(format!("{:04}{:02}{:02}", y, m, d))
             } else { None };
 
-        let new_end = if let (Some(y), Some(m), Some(d), Some(eh), Some(em)) = 
-            (new_year, new_month, new_day, new_end_hour, new_end_mins) {
-                Some(format!("{:04}{:02}{:02}T{:02}{:02}00", y, m, d, eh, em))
+        let new_beg = if let (Some(bh), Some(bm)) = 
+            (new_begin_hour, new_begin_mins) {
+                Some(format!("{:02}{:02}00", bh, bm))
             } else { None };
+        
+        let new_end = if let (Some(eh), Some(em)) = (new_end_hour, new_end_mins){
+            Some(format!("{:02}{:02}00", eh, em))
+        }else {None};
 
-        let res = self.calendar_controller.change_event(uid, Some(title), new_begin, new_end);
+        let res = self.calendar_controller.change_event(uid, title, new_date, new_beg, new_end);
         
         if res {
             let _ = self.calendar_controller.save(&format!("{}/calendar.ics", self.folder_name));

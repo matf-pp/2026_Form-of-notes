@@ -6,7 +6,7 @@ import {NotesView} from "notes.slint";
 
 export component AppWindow inherits Window{
     title: "Form of Notes";
-    icon: @image-url("fonlogo-light.png"); //dodati logo
+    icon: @image-url("fonlogo-light.png");
     min-width: 1600px;
     min-height: 900px;
 
@@ -67,7 +67,6 @@ export component AppWindow inherits Window{
                     alignment: center;
                     HorizontalLayout {
                         alignment: end;
-                        //export img
                         spacing: 5px;
                         MyButton {
                             width: 200px;
@@ -90,18 +89,12 @@ export component AppWindow inherits Window{
                     MyButton {
                         text: "Tasks";
                         button-color: root.current-tab == 0 ? AppPalette.primary-color : AppPalette.secondary-color;
-                        clicked => {
-                            root.current-tab = 0;
-                            //root.tasks = root.get-tasks(5);
-                        }
+                        clicked => {root.current-tab = 0;}
                     }
                     MyButton {
                         text: "Calendar";
                         button-color: root.current-tab == 1 ? AppPalette.primary-color : AppPalette.secondary-color;
-                        clicked => {
-                            root.current-tab = 1;
-                            //root.events = root.get-calendar();
-                        }
+                        clicked => {root.current-tab = 1;}
                     }
                     MyButton {
                         text: "Notes";

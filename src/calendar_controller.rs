@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use std::fs::{read_to_string, File};
 use std::io::Write;
 use chrono::{Datelike, DateTime, Local, NaiveDate, NaiveDateTime, TimeZone, Timelike};
-use icalendar::{Calendar, CalendarComponent, Component, Event, Property, EventLike};
+use icalendar::{Calendar, CalendarComponent, Component, Event, Property, EventLike, DatePerhapsTime};
 
 
 #[derive(Debug, Clone)]
@@ -79,25 +79,84 @@ impl CalendarController {
         }
     }
 
-    pub fn change_event(&mut self, uid: &str, _new_title: Option<String>, _new_begin: Option<String>, _new_end: Option<String>) -> bool{
-        for component in &mut self.my_calendar.components {
-            if let CalendarComponent::Event(event) = component {
-                if event.get_uid() == Some(uid) {
-                    if let Some(new_title) = _new_title{
-                        event.summary(&new_title);
-                    }
-                    if let Some(new_begin) = _new_begin{
-                        event.append_property(Property::new("DTSTART", &new_begin));
-                    }
-                    if let Some(new_end) = _new_end{
-                        event.append_property(Property::new("DTEND", &new_end));
-                    }
-                    return true;
+    pub fn change_event(
+    &mut self, 
+    uid: &str, 
+    new_title: Option<String>, 
+    new_date: Option<String>,
+    new_begin: Option<String>, 
+    new_end: Option<String>
+) -> bool {
+    for component in &mut self.my_calendar.components {
+        if let CalendarComponent::Event(event) = component {
+            if event.get_uid() == Some(uid) {
+                
+                // 1. Update title summary if provided
+                if let Some(new_title_str) = new_title {
+                    event.summary(&new_title_str);
                 }
+
+                // 2. Safely extract values by evaluating the variants of DatePerhapsTime
+                let old_start_str = event.properties().iter()
+                    .find(|(k, _)| k.as_str() == "DTSTART")
+                    .map(|(_, v)| v.value())
+                    .unwrap_or_else(|| "20260101T000000");
+
+                let old_end_str = event.properties().iter()
+                    .find(|(k, _)| k.as_str() == "DTEND")
+                    .map(|(_, v)| v.value())//potencijalno .clone() 
+                    .unwrap_or_else(|| "20260101T235900");
+
+                let clean_start = old_start_str.replace('Z', "");
+                let clean_end = old_end_str.replace('Z', "");
+
+                let old_date = clean_start.get(0..8).unwrap_or("20260101");
+                let old_start_time = clean_start.get(9..15).unwrap_or("000000");
+
+                let mut final_start = clean_start.clone();
+                let mut final_end = clean_end.clone();
+
+                // 3. Decision Tree Evaluation
+                match new_date {
+                    Some(ref nd) => {
+                        if let Some(ref ns) = new_begin {
+                            final_start = format!("{}T{}", nd, ns);
+                        } else {
+                            final_start = format!("{}T000000", nd);
+                        }
+
+                        if let Some(ref ne) = new_end {
+                            final_end = format!("{}T{}", nd, ne);
+                        } else {
+                            final_end = format!("{}T000000", nd);
+                        }
+                    },
+                    None => {
+                        if let Some(ref ns) = new_begin {
+                            final_start = format!("{}T{}", old_date, ns);
+                        }
+
+                        if let Some(ref ne) = new_end {
+                            // FIX: Added .as_str() to properly compare string types
+                            if ne.as_str() > old_start_time {
+                                final_end = format!("{}T{}", old_date, ne);
+                            } else if let Some(ref ns) = new_begin {
+                                final_end = format!("{}T{}", old_date, ns);
+                            }
+                        }
+                    }
+                }
+
+                // 4. Update the event properties using proper borrowings (&str)
+                event.add_property("DTSTART", &final_start);
+                event.add_property("DTEND", &final_end);
+
+                return true;
             }
         }
-        false
     }
+    false
+}
 
     pub fn add_event(&mut self, title: String, begin_date: String, end_date: String) -> String{
         let uid = uuid::Uuid::new_v4().to_string();
