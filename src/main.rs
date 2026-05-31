@@ -333,7 +333,6 @@ fn main() -> Result<(), slint::PlatformError> {
     let ui_slcn_weak = ui.as_weak();
     ui.on_select_note(move |id| {
         let s = s_slc_note.lock().unwrap();
-        let _ = s.save_data();
 
         let mut new_title = "-1".to_string();
         let mut new_content = "-1".to_string();
@@ -345,6 +344,7 @@ fn main() -> Result<(), slint::PlatformError> {
             new_content = note.content.clone();
             new_id = id.to_string();
         }
+        let _ = s.save_data();
         if let Some(ui) = ui_slcn_weak.upgrade(){
             ui.set_selected_note_id(new_id.into());
             ui.set_editing_title(new_title.into());
@@ -371,7 +371,7 @@ fn main() -> Result<(), slint::PlatformError> {
     let ui_slcc_weak = ui.as_weak();
     ui.on_select_category(move |id| {
         let s = s_slc_ctg.lock().unwrap();
-        
+        let _ = s.save_data();
         if let Some(ui) = ui_slcc_weak.upgrade(){
             if id == "all" {
                 ui.set_notes(to_slint_notes(&s.get_notes()));
@@ -392,7 +392,8 @@ fn main() -> Result<(), slint::PlatformError> {
         let ctg_uid: Uuid = Uuid::parse_str(ctg_id.as_str()).unwrap();
 
         let _ = s.assign_category(note_uid, ctg_uid);
-
+        
+        let _ = s.save_data();
         if let Some(ui) = ui_asgc_weak.upgrade(){
             ui.set_notes(to_slint_notes(&s.get_notes()));
 
@@ -412,6 +413,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
         let _ = s.remove_category(note_uid, ctg_uid);
 
+        let _ = s.save_data();
         if let Some(ui) = ui_rmvc_weak.upgrade(){
             ui.set_notes(to_slint_notes(&s.get_notes()));
 
@@ -439,6 +441,8 @@ fn main() -> Result<(), slint::PlatformError> {
     {
         let mut s = state.lock().unwrap();
         ui.set_tasks(to_slint_tasks(&s.get_tasks(0)));
+        ui.set_notes(to_slint_notes(&s.get_notes()));
+        ui.set_categories(to_slint_categories(&s.get_categories()));
     }
 
     ui.run()

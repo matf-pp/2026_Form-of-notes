@@ -15,47 +15,55 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(folder: Option<&str>) -> Self {
+        let default_path = if cfg!(target_os = "windows") {
+            "C:/Users/Public/Form_of_Notes".to_string()
+        } else {
+            match std::env::var("HOME") {
+                Ok(home) => format!("{}/Form_of_Notes", home),
+                Err(_) => "./Form_of_Notes".to_string(),
+            }
+        };
+
         AppState {
             calendar_controller: CalendarController::new(),
             task_controller: TaskController::new(),
             notes_controller: NotesController::new(),
-            folder_name: folder.unwrap_or(if cfg!(target_os = "windows") {
-                "C:/Users/Public"
-            } else {
-                "~"
-            }).to_string(),
+            folder_name: folder.map(|s| s.to_string()).unwrap_or(default_path),
         }
     }
 
     pub fn import_data(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let calendar_path = format!("{}/calendar.ics", self.folder_name);
-        let tasks_path = format!("{}/tasks.json", self.folder_name);
-        let notes_path = format!("{}/notes.json", self.folder_name);
-        let ctg_path = format!("{}/categories.json", self.folder_name);
-        
-        if std::path::Path::new(&calendar_path).exists() {
-            if let Err(e) = self.calendar_controller.import_calendar(&calendar_path){
-                eprintln!("Error loading: {}", e);
+        let folder_path = std::path::Path::new(&self.folder_name);
+        if !folder_path.exists() {
+            let _ = std::fs::create_dir(folder_path);
+        } else {
+            let calendar_path = format!("{}/calendar.ics", self.folder_name);
+            let tasks_path = format!("{}/tasks.json", self.folder_name);
+            let notes_path = format!("{}/notes.json", self.folder_name);
+            
+            if std::path::Path::new(&calendar_path).exists() {
+                if let Err(e) = self.calendar_controller.import_calendar(&calendar_path){
+                    eprintln!("Error loading: {}", e);
+                }
+            }
+            if std::path::Path::new(&tasks_path).exists() {
+                if let Err(e) = self.task_controller.import_tasks(&tasks_path) {
+                    eprintln!("Error loading: {}", e);
+                }
+            }
+            if std::path::Path::new(&notes_path).exists() {
+                if let Err(e) = self.notes_controller.import_notes(&notes_path) {
+                    eprintln!("Error loading: {}", e);
+                }
             }
         }
-        if std::path::Path::new(&tasks_path).exists() {
-            if let Err(e) = self.task_controller.import_tasks(&tasks_path) {
-                eprintln!("Error loading: {}", e);
-            }
-        }
-        if std::path::Path::new(&notes_path).exists() && std::path::Path::new(&ctg_path).exists() {
-            if let Err(e) = self.notes_controller.import_notes(&format!("{}", self.folder_name)) {
-                eprintln!("Error loading: {}", e);
-            }
-        }
-
         Ok(())
     }
 
     pub fn save_data(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.task_controller.save(&format!("{}/tasks.json", self.folder_name))?;
         self.calendar_controller.save(&format!("{}/calendar.ics", self.folder_name))?;
-        self.notes_controller.save(&format!("{}", self.folder_name))?;
+        self.notes_controller.save(&format!("{}/notes.json", self.folder_name))?;
         Ok(())
     }
 

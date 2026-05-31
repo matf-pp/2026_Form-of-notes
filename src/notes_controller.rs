@@ -1,7 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
-use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Note {
@@ -19,7 +18,7 @@ pub struct Category {
     pub color: Option<String>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct NotesController {
     notes: HashMap<Uuid, Note>,
     categories: HashMap<Uuid, Category>,
@@ -137,43 +136,17 @@ impl NotesController {
         ctg_list
     }
 
-    pub fn import_notes(&mut self, filepath: &str) -> Result<Self, Box<dyn std::error::Error>>{
-        let mut ctg_path = PathBuf::from(filepath);
-        ctg_path.push("categories");
-        ctg_path.set_extension("json");
-
-        let mut notes_path = PathBuf::from(filepath);  
-        notes_path.push("notes");
-        notes_path.set_extension("json");
-
-        let notes_json = std::fs::read_to_string(notes_path)?;
-        let ctg_json = std::fs::read_to_string(ctg_path)?;
-
-        let imp_notes: HashMap<Uuid, Note> = serde_json::from_str(&notes_json)?;
-        let imp_categories: HashMap<Uuid, Category> = serde_json::from_str(&ctg_json)?;
-
-        let controller = NotesController {
-            notes: imp_notes.clone(),
-            categories: imp_categories.clone(),
-        };
-        
-        Ok(controller)
+    pub fn import_notes(&mut self, filepath: &str) -> Result<(), Box<dyn std::error::Error>>{
+        let json = std::fs::read_to_string(filepath)?;
+        let imported_controller: Self = serde_json::from_str(&json)?;
+        self.notes = imported_controller.notes;
+        self.categories = imported_controller.categories;
+        Ok(())
     }
 
     pub fn save(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let ctg_json = serde_json::to_string_pretty(&self.categories)?;
-        let notes_json = serde_json::to_string_pretty(&self.notes)?;
-
-        let mut ctg_path = PathBuf::from(filepath);
-        ctg_path.push("categories");
-        ctg_path.set_extension("json");
-
-        let mut notes_path = PathBuf::from(filepath);  
-        notes_path.push("notes");
-        notes_path.set_extension("json");
-
-        std::fs::write(ctg_path, ctg_json)?;
-        std::fs::write(notes_path, notes_json)?;
+        let json = serde_json::to_string_pretty(&self)?;
+        std::fs::write(filepath, json)?;
         Ok(())
     }
 }
