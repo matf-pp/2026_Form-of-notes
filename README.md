@@ -28,7 +28,7 @@ cargo run
 ## Running the app
 The project was developed for Linux and Windows operating systems.
 
-Download and extract the executable for your operating system from  [Releases\{https://github.com/matf-pp/2026_Form-of-notes/releases/latest}.
+Download and extract the executable for your operating system from  [Releases](https://github.com/matf-pp/2026_Form-of-notes/releases/latest).
 
 Run the app:
 ```
