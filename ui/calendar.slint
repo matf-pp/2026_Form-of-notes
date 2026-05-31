@@ -380,123 +380,126 @@ export component CalendarView inherits HorizontalLayout{
             vertical-stretch: 1;
         }
     }
-    // the right side thing
-    VerticalLayout {
-        padding-top: -20px;
-        horizontal-stretch: 1;
-        spacing: 15px;
-        alignment: start;
-        HorizontalLayout{
-            alignment: center;
-            spacing: 10px;
-            padding-bottom: 10px;
-            Rectangle{
-                MyText {
-                    text: "<";
+    // the right handside thing
+    HorizontalLayout {
+        alignment: end;
+        VerticalLayout {
+            padding-top: -20px;
+            horizontal-stretch: 1;
+            spacing: 15px;
+            alignment: start;
+            HorizontalLayout{
+                alignment: center;
+                spacing: 10px;
+                padding-bottom: 10px;
+                Rectangle{
+                    MyText {
+                        text: "<";
+                    }
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 12px;
+                    background: AppPalette.primary-color;
+                    TouchArea {
+                        clicked => {
+                            if(month == 1){
+                                get_events(12, year - 1);
+                            }else{
+                                get_events(month - 1, year);
+                            }
+                        }
+                    }
                 }
-                width: 20px;
-                height: 20px;
-                border-radius: 12px;
-                background: AppPalette.primary-color;
-                TouchArea {
-                    clicked => {
-                        if(month == 1){
-                            get_events(12, year - 1);
-                        }else{
-                            get_events(month - 1, year);
+                MyText{ //need to center
+                    text: month_name;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    font-weight: 600;
+                    font-size: 25px;
+                }Rectangle{
+                    MyText {
+                        text: ">";
+                    }
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 8px;
+                    background: AppPalette.primary-color;
+                    TouchArea {
+                        clicked => {
+                            if(month == 12){
+                                get_events(1, year+1);
+                            }else{
+                                get_events(month+1, year);
+                            }
                         }
                     }
                 }
             }
-            MyText{ //need to center
-                text: month_name;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-                font-weight: 600;
-                font-size: 25px;
-            }Rectangle{
-                MyText {
-                    text: ">";
-                }
-                width: 20px;
-                height: 20px;
-                border-radius: 8px;
-                background: AppPalette.primary-color;
-                TouchArea {
-                    clicked => {
-                        if(month == 12){
-                            get_events(1, year+1);
-                        }else{
-                            get_events(month+1, year);
-                        }
-                    }
-                }
-            }
-        }
-        HorizontalLayout{
-            spacing: 5px;
-            MyText{
-                text: "Sunday";
-                width: 80px;
-                font-weight: 600;
-                horizontal-alignment: center;
-            }
-            MyText{
-                text: "Monday";
-                width: 80px;
-                font-weight: 600;
-                horizontal-alignment: center;
-            }
-            MyText{
-                text: "Tuesday";
-                width: 80px;
-                font-weight: 600;
-                horizontal-alignment: center;
-            }
-            MyText{
-                text: "Wednesday";
-                width: 80px;
-                font-weight: 600;
-                horizontal-alignment: center;
-            }
-            MyText{
-                text: "Thursday";
-                width: 80px;
-                font-weight: 600;
-                horizontal-alignment: center;
-            }
-            MyText{
-                text: "Friday";
-                width: 80px;
-                font-weight: 600;
-                horizontal-alignment: center;
-            }
-            MyText{
-                text: "Saturday";
-                width: 80px;
-                font-weight: 600;
-                horizontal-alignment: center;
-            }
-        }
-        GridLayout{
-            spacing: 5px;
-            for day in days : Rectangle {
-                row: day.row_idx;
-                col: day.col_idx;
-                width: 80px;
-                height: 80px;
+            HorizontalLayout{
+                spacing: 5px;
                 MyText{
-                    text: day.day-of-month;
+                    text: "Sunday";
+                    width: 80px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
                 }
-                if day.has-event : Rectangle{
-                    border-radius: 20px;
-                    border-width: 1px;
-                    border-color: AppPalette.secondary-color;
+                MyText{
+                    text: "Monday";
+                    width: 80px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
                 }
-                TouchArea {
-                    clicked => {
-                        is-adding-event = true;
-                        is-editing-event = false;
+                MyText{
+                    text: "Tuesday";
+                    width: 80px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                }
+                MyText{
+                    text: "Wednesday";
+                    width: 80px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                }
+                MyText{
+                    text: "Thursday";
+                    width: 80px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                }
+                MyText{
+                    text: "Friday";
+                    width: 80px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                }
+                MyText{
+                    text: "Saturday";
+                    width: 80px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                }
+            }
+            GridLayout{
+                spacing: 5px;
+                for day in days : Rectangle {
+                    row: day.row_idx;
+                    col: day.col_idx;
+                    width: 80px;
+                    height: 80px;
+                    MyText{
+                        text: day.day-of-month;
+                    }
+                    if day.has-event : Rectangle{
+                        border-radius: 20px;
+                        border-width: 1px;
+                        border-color: AppPalette.secondary-color;
+                    }
+                    TouchArea {
+                        clicked => {
+                            is-adding-event = true;
+                            is-editing-event = false;
+                        }
                     }
                 }
             }

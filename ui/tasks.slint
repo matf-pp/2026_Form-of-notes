@@ -31,7 +31,7 @@ export component TaskView inherits VerticalLayout {
         MyText{
             text: "My tasks";
             font-size: 25px;
-            horizontal-alignment: start;
+            horizontal-alignment: center;
         }
     }
 
@@ -178,8 +178,16 @@ export component TaskView inherits VerticalLayout {
             
         }
     }
+HorizontalLayout {
+        alignment: center; // Horizontally anchors the entire block to the center of the viewport
+        vertical-stretch: 1;
+
+        VerticalLayout {
+            width: 850px;  // Dictates the strict content boundary layout window
+            spacing:5px;
 
     HorizontalLayout {
+        alignment: start;
         HorizontalLayout {
             spacing: 10px;
             alignment: start;
@@ -190,9 +198,15 @@ export component TaskView inherits VerticalLayout {
             TaskHeader { text: "Time spent:";}
         }
         HorizontalLayout {
-            alignment: end;
+            padding-left: 10px;
             MyButton {
-                text: form-area.visible ? "Cancel" : "Add Task";
+                width: 170px;
+                height: 30px;
+                background: AppPalette.secondary-color;
+                MyText {
+                    text: form-area.visible ? "Cancel" : "Add Task";
+                    font-size: 14px;
+                }
                 clicked => { 
                     form-area.visible = !form-area.visible; 
                     form-area.wanted-id = 0;
@@ -353,6 +367,9 @@ export component TaskView inherits VerticalLayout {
             }
         }
     }
+
+}
+        }
 
     }
 }
