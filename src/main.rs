@@ -168,6 +168,8 @@ fn main() -> Result<(), slint::PlatformError> {
                 ui.set_tasks(to_slint_tasks(&s.get_tasks(0)));
                 ui.set_notes(to_slint_notes(&s.get_notes()));
                 ui.set_categories(to_slint_categories(&s.get_categories()));
+
+                ui.set_selected_note_id(SharedString::from("-1"));
                 //ui.set_folder_path(SharedString::from("Folder does  Exist"));
             } else {
                 ui.set_folder_path(SharedString::from("Folder does not Exist"));
