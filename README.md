@@ -30,6 +30,6 @@ The project was developed for Linux and Windows operating systems.
 
 To run the app download the executable for your operating system found in Releases section and run it.
 
-##Authors
+## Authors
 - [Jana Vuković](https://github.com/JanaVukovic)
 - [Djordje Jovanović](https://github.com/jovanov1c)
