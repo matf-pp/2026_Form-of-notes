@@ -9,6 +9,7 @@ use app_state::AppState;
 use chrono::{Datelike, Local, NaiveDate};
 use slint::{ModelRc, SharedString, VecModel};
 use uuid::Uuid;
+use file_picker::{Picker, PickerBuilder};
 use std::sync::{Arc, Mutex};
 
 fn to_slint_events(events: &[calendar_controller::UICalendarEvent]) -> ModelRc<SlintCalendarEvent> {
@@ -115,6 +116,53 @@ fn main() -> Result<(), slint::PlatformError> {
         let _ = s.import_data();
     }
 
+//----------------FOLDER PICKER-----------------
+
+    let ui_brws_weak = ui.as_weak();
+    ui.on_browse_clicked(move || {
+        let dir = Picker::directory().with_prompt("Pick a folder").select().unwrap();
+        
+        if let Some(ui) = ui_brws_weak.upgrade(){
+            ui.set_folder_path(SharedString::from(dir.display().to_string()));
+        }
+    });
+
+    let s_chc_dir = state.clone();
+    let ui_chcf_weak = ui.as_weak();
+    ui.on_check_manually(move |path| {
+        let mut s = s_chc_dir.lock().unwrap();
+
+        if let Some(ui) = ui_chcf_weak.upgrade(){
+            if std::path::Path::new(&path).exists() {
+                s.change_dir(path.as_str());
+
+                let current_date = Local::now().date_naive();
+                let month = current_date.month() as i32;
+                let year = current_date.year() as i32;
+                let (events, days) = s.get_events(month as u32, year as u32);
+            
+                ui.set_events(to_slint_events(&events));
+                ui.set_calendar_days(to_slint_days(&days));
+                ui.set_calendar_month(month);
+                ui.set_calendar_year(year);
+
+                let month_name = match month {
+                    1 => "January", 2 => "February", 3 => "March", 4 => "April",
+                    5 => "May", 6 => "June", 7 => "July", 8 => "August",
+                    9 => "September", 10 => "October", 11 => "November", 12 => "December",
+                    _ => "Unknown"
+                };
+                ui.set_calendar_month_name(month_name.into());
+
+                ui.set_tasks(to_slint_tasks(&s.get_tasks(0)));
+                ui.set_notes(to_slint_notes(&s.get_notes()));
+                ui.set_categories(to_slint_categories(&s.get_categories()));
+                //ui.set_folder_path(SharedString::from("Folder does  Exist"));
+            } else {
+                ui.set_folder_path(SharedString::from("Folder does not Exist"));
+            }
+        }
+    });
 //--------------------------------------------TASKS--------------------------------------------
     let s_task_get = state.clone();
     ui.on_get_tasks(move |sort_by| {
@@ -441,7 +489,7 @@ fn main() -> Result<(), slint::PlatformError> {
         if id.as_str() != "all" {
             let _ = s.delete_category(Uuid::parse_str(id.as_str()).unwrap());
         }
-        
+
         let _ = s.save_data();
         if let Some(ui) = ui_delc_weak.upgrade(){
             ui.set_active_category_id(SharedString::from("all"));

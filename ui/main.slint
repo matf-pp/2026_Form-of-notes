@@ -3,6 +3,7 @@ import { MyButton, FoNLogo, MyText }                      from "commons.slint";
 import { SlintTask, TaskView }           from "tasks.slint";
 import { SlintCalendarEvent, CalendarView, DateInfo } from "calendar.slint";
 import { SlintNote, SlintCategory, NotesView } from "notes.slint";
+import { FolderPicker } from "folder-picker.slint";
 
 export component AppWindow inherits Window{
     title: "Form of Notes";
@@ -14,6 +15,11 @@ export component AppWindow inherits Window{
 
     callback change-folder(string);
 
+    // Folder picker
+    callback browse-clicked <=> folder-view.browse-clicked;
+    callback check-manually <=> folder-view.check-manually;
+
+    in-out property <string> folder-path <=> folder-view.folder-path;
 
     // Tasks 
     callback get-tasks <=> task-view.get-tasks;
@@ -94,7 +100,8 @@ export component AppWindow inherits Window{
                                 width: 200px;
                                 text: "Change work folder";
                                 clicked => {
-                                //    root.change-folder();
+                                    folder-area.visible = !folder-area.visible;
+                                    folder-path = "";
                                 }
                             }
                             MyButton {
@@ -102,6 +109,23 @@ export component AppWindow inherits Window{
                                 clicked => {AppPalette.is-dark = !AppPalette.is-dark;}
                             }
                         }
+
+                        folder-area := Rectangle {
+                            visible: false;
+                            height: self.visible ? 70px : 0px;
+                            animate height { duration: 150ms; easing: ease-in-out; }
+                            clip: true;
+                            background: AppPalette.bg-color.darker(10%);
+                            border-radius: 8px;
+                            border-width: 1px;
+                            border-color: AppPalette.primary-color;
+
+                            folder-view := FolderPicker {
+                                width: 100%;
+                                height: 100%;
+                            }
+                        }
+
 
                     }
                 }

@@ -114,6 +114,11 @@ impl TaskController{
         Ok(())
     }
 
+    pub fn reset(&mut self) {
+        self.next_id = 1;
+        self.tasks = Vec::new();
+    }
+
     pub fn save(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
         let json = serde_json::to_string_pretty(&self)?;
         std::fs::write(filepath, json)?;

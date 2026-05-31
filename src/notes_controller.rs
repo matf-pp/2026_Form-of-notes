@@ -155,6 +155,11 @@ impl NotesController {
         Ok(())
     }
 
+    pub fn reset(&mut self) {
+        self.notes = HashMap::new();
+        self.categories = HashMap::new();
+    }
+
     pub fn save(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
         let json = serde_json::to_string_pretty(&self)?;
         std::fs::write(filepath, json)?;

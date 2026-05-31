@@ -32,6 +32,11 @@ impl AppState {
         }
     }
 
+    pub fn change_dir(&mut self, new_path: &str) {
+        self.folder_name = new_path.to_string();
+        let _ = self.import_data();
+    }
+
     pub fn import_data(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let folder_path = std::path::Path::new(&self.folder_name);
         if !folder_path.exists() {
@@ -45,16 +50,22 @@ impl AppState {
                 if let Err(e) = self.calendar_controller.import_calendar(&calendar_path){
                     eprintln!("Error loading: {}", e);
                 }
+            } else {
+                self.calendar_controller.reset();
             }
             if std::path::Path::new(&tasks_path).exists() {
                 if let Err(e) = self.task_controller.import_tasks(&tasks_path) {
                     eprintln!("Error loading: {}", e);
                 }
+            } else {
+                self.task_controller.reset();
             }
             if std::path::Path::new(&notes_path).exists() {
                 if let Err(e) = self.notes_controller.import_notes(&notes_path) {
                     eprintln!("Error loading: {}", e);
                 }
+            } else {
+                self.notes_controller.reset();
             }
         }
         Ok(())

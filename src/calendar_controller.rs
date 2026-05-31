@@ -60,6 +60,10 @@ impl CalendarController {
         Ok(())
     }
 
+    pub fn reset(&mut self) {
+        self.my_calendar = Calendar::new();
+    }
+
     fn to_naive(&self, dt: icalendar::DatePerhapsTime) -> chrono::NaiveDateTime {
         match dt {
             icalendar::DatePerhapsTime::DateTime(cal_dt) => match cal_dt {

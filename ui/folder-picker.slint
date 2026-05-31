@@ -11,21 +11,24 @@ export component FolderPicker inherits VerticalLayout{
     in-out property <string> folder-error-message: "";
     
     //add needed functions here, unsure what's necessary
-    callback browse-clicked() -> string; //we need to see what it returns
+    callback browse-clicked(); //we need to see what it returns
     callback check-manually(string);
-
-    MyText{
-        text: "Choose your work folder";
-        font-size: 13px;
-        color: AppPalette.text-color;
+    HorizontalLayout{
+        padding-top: 10px;
+        alignment:center;
+        MyText{
+            text: "Choose your work folder";
+            font-size: 16px;
+            color: AppPalette.text-color;
+        }
     }
     HorizontalLayout {
         folder-path-input := LineEdit {
-            text: folder-path;
+            text <=> root.folder-path;
             placeholder-text: "/path/to/your/project";
             accepted(text) => {
                 folder-path = self.text;
-                check-manually(self.text);
+                check-manually(root.folder_path);
             }
         }
         Rectangle {
@@ -36,6 +39,7 @@ export component FolderPicker inherits VerticalLayout{
             HorizontalLayout {
                 alignment: center;
                 Image {} //add a lil directory img
+                padding-top : 13px;
                 MyText {text: "Browse";}
             }
             TouchArea {
