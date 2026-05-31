@@ -28,7 +28,18 @@ cargo run
 ## Running the app
 The project was developed for Linux and Windows operating systems.
 
-To run the app download the executable for your operating system found in Releases section and run it.
+Download and extract the executable for your operating system from  [Releases\{https://github.com/matf-pp/2026_Form-of-notes/releases/latest}.
+
+Run the app:
+```
+#Linux
+./form_of_notes
+```
+
+```
+#Windows
+form_of_notes.exe
+```
 
 ## Authors
 - [Jana Vuković](https://github.com/JanaVukovic)
