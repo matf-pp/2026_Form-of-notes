@@ -120,11 +120,23 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let ui_brws_weak = ui.as_weak();
     ui.on_browse_clicked(move || {
-        let dir = Picker::directory().with_prompt("Pick a folder").select().unwrap();
-        
-        if let Some(ui) = ui_brws_weak.upgrade(){
-            ui.set_folder_path(SharedString::from(dir.display().to_string()));
-        }
+        let ui_weak = ui_brws_weak.clone();
+
+        std::thread::spawn(move ||{
+            if let Some(path_buf) = rfd::FileDialog::new()
+                .set_title("Pick a folder")
+                .pick_folder() 
+            {
+                let path_string = path_buf.display().to_string();
+                
+                // Send the chosen path back to the Slint GUI thread
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = ui_weak.upgrade() {
+                        ui.set_folder_path(slint::SharedString::from(path_string));
+                    }
+                });
+            }
+        });
     });
 
     let s_chc_dir = state.clone();
