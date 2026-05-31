@@ -136,6 +136,17 @@ impl NotesController {
         ctg_list
     }
 
+    pub fn delete_category(&mut self, category_id: Uuid) -> Result<Category, String> {
+        self.notes.values_mut().for_each(|n| {
+            n.categories.remove(&category_id);
+        });
+        if let Some(removed_note) = self.categories.remove(&category_id) {
+            Ok(removed_note)
+        } else {
+            Err("Category not found".to_string())
+        }
+    }
+
     pub fn import_notes(&mut self, filepath: &str) -> Result<(), Box<dyn std::error::Error>>{
         let json = std::fs::read_to_string(filepath)?;
         let imported_controller: Self = serde_json::from_str(&json)?;

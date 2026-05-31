@@ -49,11 +49,13 @@ export component AppWindow inherits Window{
     callback add-note-category <=> notes-view.add-note-category;
     callback remove-note-category <=> notes-view.remove-note-category;
     pure callback has-category <=> notes-view.has-category;
+    callback delete-category <=> notes-view.delete-category;
 
     in-out property <[SlintCategory]> categories <=> notes-view.categories;
     in-out property <[SlintNote]> notes <=> notes-view.notes;
 
     in-out property <string> selected-note-id <=> notes-view.selected-note-id;
+    in-out property <string> active-category-id <=> notes-view.active-category-id;
 
     in-out property <string> editing-title <=> notes-view.editing-title;
     in-out property <string> editing-content <=> notes-view.editing-content;
@@ -84,22 +86,23 @@ export component AppWindow inherits Window{
                         }
                     }
                     VerticalLayout {
-                    alignment: center;
-                    HorizontalLayout {
-                        alignment: end;
-                        spacing: 5px;
-                        MyButton {
-                            width: 200px;
-                            text: "Change work folder";
-                            clicked => {
-                            //    root.change-folder();
+                        alignment: center;
+                        HorizontalLayout {
+                            alignment: end;
+                            spacing: 5px;
+                            MyButton {
+                                width: 200px;
+                                text: "Change work folder";
+                                clicked => {
+                                //    root.change-folder();
+                                }
+                            }
+                            MyButton {
+                                text: AppPalette.is_dark ? "Light Mode" : "Dark Mode";
+                                clicked => {AppPalette.is-dark = !AppPalette.is-dark;}
                             }
                         }
-                        MyButton {
-                            text: AppPalette.is_dark ? "Light Mode" : "Dark Mode";
-                            clicked => {AppPalette.is-dark = !AppPalette.is-dark;}
-                        }
-                    }
+
                     }
                 }
 

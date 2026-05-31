@@ -65,16 +65,27 @@ component CategoryTag {
 
     Rectangle {
         background: root.active ? AppPalette.primary-color : AppPalette.secondary-color;
-        border-radius: 12px;
+        border-radius: 16px;
         border-width: 1px;
         border-color: root.active ? transparent : AppPalette.primary-color.darker(10%);
-        animate background { duration: 100ms; }
 
-        Text {
-            text: root.name;
-            font-size: 16px;
-            color: white;
-            //padding: 12px;
+        animate background { duration: 150ms; easing: ease-in-out; }
+        animate border-color { duration: 150ms; easing: ease-in-out; }
+
+        HorizontalLayout {
+            padding-left: 16px;
+            padding-right: 16px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            alignment: center;
+
+            Text {
+                text: root.name;
+                font-size: 14px;
+                font-weight: root.active ? 600 : 500;
+                color: white;
+                //padding: 12px;
+            }
         }
     }
 }
@@ -91,6 +102,7 @@ export component NotesView inherits HorizontalLayout {
     pure callback has-category(string, string) -> bool;
     //callback save-note();
     callback delete-note(string);
+    callback delete-category(string);
 
     in-out property <[SlintCategory]> categories: [];
     in-out property <[SlintNote]> notes: [];
@@ -192,7 +204,7 @@ export component NotesView inherits HorizontalLayout {
             
             HorizontalLayout {
                 ScrollView {
-                    height: 70px;
+                    height: 50px;
 
                     HorizontalLayout {
                         width: self.preferred-width; 
@@ -216,6 +228,14 @@ export component NotesView inherits HorizontalLayout {
                             }
                         }
                     }
+                }
+            }
+
+            MyButton {
+                width: 476px;
+                text: "Delete Selected Category";
+                clicked => { 
+                        root.delete-category(root.active-category-id);
                 }
             }
 
@@ -263,7 +283,7 @@ export component NotesView inherits HorizontalLayout {
                 }
 
                 ScrollView {
-                    height: 70px;
+                    height: 50px;
 
                     HorizontalLayout {
                         width: self.preferred-width; 

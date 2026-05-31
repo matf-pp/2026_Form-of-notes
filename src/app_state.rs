@@ -222,4 +222,8 @@ impl AppState {
     pub fn get_categories(&self) -> Vec<Category> {
         self.notes_controller.get_categories()
     }
+
+    pub fn delete_category(&mut self, id: Uuid) -> Result<Category, String> {
+        self.notes_controller.delete_category(id)
+    }
 }

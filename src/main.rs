@@ -433,6 +433,23 @@ fn main() -> Result<(), slint::PlatformError> {
         s.has_category(note_uid, ctg_uid)
     });
 
+    let s_del_ctg = state.clone();
+    let ui_delc_weak = ui.as_weak();
+    ui.on_delete_category(move |id| {
+        let mut s = s_del_ctg.lock().unwrap();
+        
+        if id.as_str() != "all" {
+            let _ = s.delete_category(Uuid::parse_str(id.as_str()).unwrap());
+        }
+        
+        let _ = s.save_data();
+        if let Some(ui) = ui_delc_weak.upgrade(){
+            ui.set_active_category_id(SharedString::from("all"));
+            ui.set_notes(to_slint_notes(&s.get_notes()));
+            ui.set_categories(to_slint_categories(&s.get_categories()));
+        }
+    });
+
 //Some initialising things
     
     let current_date = Local::now().date_naive();
