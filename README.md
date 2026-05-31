@@ -1,2 +1,9 @@
 # 2026_Form-of-notes
-Sveobuhvatni alat za fokus, beleške i planiranje vremena
+
+## About
+A GUI productivity app for managing small notes, tasks and calendar.
+
+## Tools and technologies
+- [Rust](https://rust-lang.org/)
+- [Cargo](https://crates.io/)
+- [Slint](https://slint.dev/)
