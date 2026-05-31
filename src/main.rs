@@ -9,7 +9,6 @@ use app_state::AppState;
 use chrono::{Datelike, Local, NaiveDate};
 use slint::{ModelRc, SharedString, VecModel};
 use uuid::Uuid;
-use file_picker::{Picker, PickerBuilder};
 use std::sync::{Arc, Mutex};
 
 fn to_slint_events(events: &[calendar_controller::UICalendarEvent]) -> ModelRc<SlintCalendarEvent> {
@@ -487,10 +486,10 @@ fn main() -> Result<(), slint::PlatformError> {
     ui.on_has_category(move |note_id, ctg_id| {
         let s = s_has_ctg.lock().unwrap();
         
-        let note_uid: Uuid = Uuid::parse_str(note_id.as_str()).unwrap();
-        let ctg_uid: Uuid = Uuid::parse_str(ctg_id.as_str()).unwrap();
-
-        s.has_category(note_uid, ctg_uid)
+        if let Ok(note_uid) = Uuid::parse_str(note_id.as_str()) && let Ok(ctg_uid) = Uuid::parse_str(ctg_id.as_str()) {
+            return s.has_category(note_uid, ctg_uid);  
+        }
+        false
     });
 
     let s_del_ctg = state.clone();
