@@ -1,5 +1,7 @@
 # 2026_Form-of-notes
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2ea10e50d2aa427a9540d218347c32a2)](https://app.codacy.com/gh/matf-pp/2026_Form-of-notes/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 ## About
 A GUI productivity app for managing small notes, tasks and calendar.
 
