@@ -3,6 +3,9 @@
 ## About
 A GUI productivity app for managing small notes, tasks and calendar.
 
+<video src="./previews/NotesPreview.mp4" width="80%" controls></video>
+<video src="./previews/BrowsePreview.mp4" width="80%" controls></video>
+
 ## Tools and technologies
 - [Rust](https://rust-lang.org/)
 - [Cargo](https://crates.io/)
